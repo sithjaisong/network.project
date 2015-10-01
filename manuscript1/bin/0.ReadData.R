@@ -3,14 +3,14 @@
 #=====
 
 #==== Loading the data at the first time
-# library(RCurl)
-# file <- getURL("https://docs.google.com/spreadsheets/d/1zB7gNdI7Nk7SuHuPWcjzaKnjuwkvL6sOVMo0zMfuV-c/pub?gid=558862364&single=true&output=csv")
-# data <- read.csv(text = file)
+library(RCurl)
+file <- getURL("https://docs.google.com/spreadsheets/d/1zB7gNdI7Nk7SuHuPWcjzaKnjuwkvL6sOVMo0zMfuV-c/pub?gid=558862364&single=true&output=csv")
+data <- read.csv(text = file)
 # save(data, file = "manuscript1/data/skep1data.RData")
 #===
 
 #====load the meta data ====
-load(file = "manuscript1/data/skep1data.RData")
+#load(file = "manuscript1/data/skep1data.RData")
 
 #==== Loading the libraries ====
 library(ggplot2)
@@ -24,7 +24,12 @@ library(qgraph)
 library(doBy)
 library(cluster)
 library(vegan)
+library(XLConnect)
 
+#Filepath <- "~/Google Drive/1.SKEP1/SKEP1survey.xls"
+#data <- readWorksheetFromFile(Filepath, sheet = 1)
+
+#data <- data2
 #==== remove the NA ====
 data[data == "-"] <- NA # replace '-' with NA
 data[data == ""] <- NA # replace 'missing data' with NA
@@ -125,9 +130,9 @@ data <- transform(data,
 #== recode the catagory data
 #  levels(data$country)[levels(data$country) == "IDN"] <- 1
 #  levels(data$country)[levels(data$country) == "IND"] <- 2
-#  levels(data$country)[levels(data$country) == "PHL"] <- 3
-#  levels(data$country)[levels(data$country) == "THA"] <- 4
-#  levels(data$country)[levels(data$country) == "VNM"] <- 5
+#   levels(data$country)[levels(data$country) == "PHL"] <- 3
+#   levels(data$country)[levels(data$country) == "THA"] <- 4
+#   levels(data$country)[levels(data$country) == "VNM"] <- 5
 
 # Previous crop
 
@@ -168,6 +173,13 @@ levels(data$cs)[levels(data$cs) == "average"] <- 3
 levels(data$cs)[levels(data$cs) == "good"] <- 4
 levels(data$cs)[levels(data$cs) == "very good"] <- 5
 
+#clean the data
+num.data <- apply(data[, -c(1,2)], 2, as.numeric)
+num.data <- as.data.frame(as.matrix(num.data))
+
+data <- cbind(data[1:2], num.data)
+data <- data[,apply(data[, -c(1,2)], 2, var, na.rm = TRUE) != 0] # exclude the column with variation = 0
+data <- data[complete.cases(data),] # exclude row which cantain NA
 
 #==== cluster analysis of the production sitatuon of the survey data ====
 start.PS <- "pc"
@@ -175,15 +187,9 @@ end.PS <- "fu"
 start.col.PS <- match(start.PS, names(data))
 end.col.PS <- match(end.PS, names(data))
 
-PS.data <- data[start.col.PS:end.col.PS]
+PS.data <- data[, c(1, start.col.PS:end.col.PS)]
 
 # transform all variable to numeric type
-PS.data <- apply(PS.data, 2, as.numeric)
-PS.data <- as.data.frame(as.matrix(PS.data))
-
-
-PS.data <- na.omit(PS.data) # listwise deletion of missing
-#mydata <- scale(mydata) # standardize variables
 
 # wss <- (nrow(PS.data)-1)* sum(apply(PS.data, 2, var))
 # for (i in 2:15) wss[i] <- sum(kmeans(PS.data, 
@@ -193,7 +199,7 @@ PS.data <- na.omit(PS.data) # listwise deletion of missing
 
 
 #distance matrix
-dist.PS <- daisy(PS.data)
+dist.PS <- daisy(PS.data[-1])
 
 cluster.PS <- hclust(dist.PS, method = "average")
 
@@ -203,57 +209,81 @@ plot(dendro.PS, center = T, nodePar = list(lab.cex = 0.6,
      main = "Dendrogram for Production situation")
 
 # draw retangles
-rect.hclust(tree = cluster.PS, k=4, border = c("red", "blue", "green", "purple"))
+rect.hclust(tree = cluster.PS, k=2, border = c("red", "blue"))
 
 #number of members in each cluster
-clusterno.PS <- cutree(cluster.PS, k = 2)
+PS.no <- cutree(cluster.PS, k = 2)
 
 # cophenitic correlation
 rcluster.PS <- cophenetic(cluster.PS)
 cor(dist.PS, rcluster.PS)
 
- # within data the rows no. 306 to 320
-new.data <- data[-c(155, 306:320), ]
-clust.data <- cbind(new.data, clusterno.PS)
+data <- cbind(data, PS.no)
+data$PS.no <- as.factor(data$PS.no)
 
-save(clust.data, file = "manuscript1/data/Cluster.data.RData")
+
+#save(clust.data, file = "manuscript1/data/Cluster.data.RData")
 #=============sebset the country====================================
 # #subset the Indonesia data
-idn <- data %>% 
-  filter(country == "IDN") %>%
-  select(-country)
+name.country <- levels(data$country)
 
-#subset India data
-ind <- data %>% 
-  filter(country == "IND") %>%
-  select(-country)
+by.country.data <- list()
+for(i in 1:length(name.country)){
+  temp <- data %>% 
+    filter(country == name.country[i])
+  by.country.data[[i]] <- temp
+}
 
-#subset Philippines data
-phl <- data %>% 
-  filter(country == "PHL") %>%
-  select(-country)
+# the number of cluster no in each country
 
-#subset Thailand data
-tha <- data %>% 
-  filter(country == "THA") %>%
-  select(-country)
+#par(mfrow=c(1,2), las=1)
+# for(i in 1:length(country)) {
+# g <- ggplot(by.country.data[[i]], aes(x = PS.no)) +
+#     geom_histogram(weights = count) +
+#     ggtitle(paste("Histogram PS cluster of" , country)) +
+#     theme(legend.position="none")
+# print(g)
+# }
+#=================================================================
 
-#subset Vietnam data
-vnm <- data %>% 
-  filter(country == "VNM") %>%
-  select(-country)
-#save(idn, ind, phl, tha, vnm, file = "manuscript1/data/ClusterSubsetData.RData")
-#load(file = "manuscript1/data/ClusterSubsetData.RData")
-# #=== check PSno in each country ====
-# source("manuscript1/bin/multiple.ggplot.R")
+# The profile of PS no 
+
+clus.PS.data <- data[, -c(1, 17:56)]
+m.PS.data <- melt(clus.PS.data)
+name.variable <- levels(m.PS.data$variable)
+# check the profile of each cluster by histogram 
+
+ggplot(subset(m.PS.data, variable == name.variable[1]), aes(x = value )) + geom_histogram(binwidth = 1) + facet_grid( .~ PS.no)
+
+# idn <- data %>% 
+#   filter(country == country[i]) %>%
+#   select(-country)
 # 
- p1 <- qplot(idn$clusterno.PS, geom="histogram")
-p1
-# p2 <- qplot(ind$clusterno.PS, geom="histogram")
-# p3 <- qplot(phl$clusterno.PS, geom="histogram")
-# p4 <- qplot(tha$clusterno.PS, geom="histogram")
-# p5 <- qplot(vnm$clusterno.PS, geom="histogram")
-# multiplot(p1, p2, p3, p4, p5, cols = 2)
+# #subset India data
+# ind <- data %>% 
+#   filter(country == "") %>%
+#   select(-country)
+# 
+# #subset Philippines data
+# phl <- data %>% 
+#   filter(country == "3") %>%
+#   select(-country)
+# 
+# #subset Thailand data
+# tha <- data %>% 
+#   filter(country == "4") %>%
+#   select(-country)
+# 
+# #subset Vietnam data
+# vnm <- data %>% 
+#   filter(country == "5") %>%
+#   select(-country)
+# #save(idn, ind, phl, tha, vnm, file = "manuscript1/data/ClusterSubsetData.RData")
+# #load(file = "manuscript1/data/ClusterSubsetData.RData")
+# 
+# data.list <- list(idn, ind, phl, tha, vnm)
+
+
 
 #=============================
 # Now we will subset the data following the cluster of PS

@@ -1,4 +1,4 @@
-#load(file = "manuscript1/data/Cluster.data.RData")
+load(file = "manuscript1/data/Cluster.data.RData")
 
 #head(clust.data)
 
@@ -41,7 +41,7 @@ for(a in 1:length(trts)){
       species2.ab <- sum(temp[,c])
       #if the column is all 0's no co-occurrence will be performed
       if(species1.ab >1 & species2.ab >1){
-        test <- cor.test(temp[,b],temp[,c],method="spearman",na.action=na.rm)
+        test <- cor.test(temp[,b],temp[,c],method="spearman", na.action=na.rm, exact = FALSE)
         rho <- test$estimate
         p.value <- test$p.value
       }

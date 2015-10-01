@@ -10,15 +10,12 @@ This is the script for explore the method for constructing networks from binary 
 ```{r load library}
 library(ggplot2)
 require(dplyr)
+library(plyr)
 require(reshape)
 require(reshape2)
-require(qgraph)
 library(gridExtra)
-library(cowplot)
 library(lubridate)
-library(XLConnect)
-library(qgraph)
-library(IsingFit)
+library(igraph)
 library(doBy)
 library(cluster)
 ```

@@ -5,11 +5,46 @@ library(reshape)
 library(ggplot2)
 library(igraph)
 
-results_sub <- subset(results, as.numeric(as.character(rho)) > 0.25)
+results_sub <- subset(results, as.numeric(as.character(abs(rho))) > 0.25)
 
+results_sub.by.group <- list()
+name.groups <- as.vector(unique(groups))
+
+for(i in 1: length(name.groups)){
+  
+  results_sub.by.group[[i]] <- subset(results_sub, trt == name.groups[i])
+}
+
+# head(results_sub.by.group[[1]][,2:3]) # get the list
+g  <- list()
+
+g[[1]] <- graph.edgelist(as.matrix(results_sub.by.group[[1]][,2:3]), directed = FALSE)
+#== adjust layout
+l <- layout.sphere(g[[1]])
+
+#== adjust vertices
+V(g[[1]])$color <- "gray40"
+V(g[[1]])$label.cex <- 0.7
+V(g[[1]])$.label.font <- 2
+V(g[[1]])$size <- 25
+
+#== adjust the edge
+E(g[[1]])$weight <- as.matrix(results_sub.by.group[[1]][, 4])
+E(g[[1]])$width <- E(g[[1]])$weight*5
+
+col <- c("firebrick3", "forestgreen")
+colc <- cut(results_sub.by.group[[1]]$rho, breaks = c(-1, 0, 1), include.lowest = TRUE)
+E(g[[1]])$color <- col[colc]
+
+V(g[[1]])$color <- "white"
+
+plot(g[[1]], layout = l * 1.0)
+
+
+#=====
 head(results_sub)
-g1 <- graph.edgelist(as.matrix(subset(results_sub, trt== "PHL_1")[,2:3]), directed=FALSE)
-g2 <- graph.edgelist(as.matrix(subset(results_sub, trt== "IND_2")[,2:3]), directed=FALSE)
+g1 <- graph.edgelist(as.matrix(subset(results_sub, trt == "PHL_1")[,2:3]), directed=FALSE)
+g2 <- graph.edgelist(as.matrix(subset(results_sub, trt == "IND_2")[,2:3]), directed=FALSE)
 
 V(g1)$color<-"red"
 V(g2)$color<-"blue"
