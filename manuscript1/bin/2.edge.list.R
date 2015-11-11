@@ -22,7 +22,7 @@ co_occur_pairs<-function(dataset){
       
       if(rhos[r] < 0){temp<-subset(dataset_trt_no0, rho <= rhos[r])}
       if(rhos[r] > 0){temp<-subset(dataset_trt_no0, rho >= rhos[r])}
-      if(dim(temp)[1]>1){
+      if(dim(temp)[1] >1 ){
         
         temp.graph<-simplify(graph.edgelist(as.matrix(temp[,c(2,3)]),directed=FALSE))
         edge_list<-data.frame(get.edgelist(temp.graph,names=TRUE))

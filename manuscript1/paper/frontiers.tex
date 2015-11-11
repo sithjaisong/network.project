@@ -44,7 +44,7 @@ $^{2}$Laboratory X, Institute X, Department X, Organization X, City X , State XX
 
 \title[Running Title]{Network Analysis of Cropping Practices and Injury Profiles in Irrigated Rice Agroecosystems} 
 
-\author[\firstAuthorLast ]{\Authors} %This field will be automatically populated
+\author[\firstAuthorLast]{\Authors} %This field will be automatically populated
 \address{} %This field will be automatically populated
 \correspondance{} %This field will be automatically populated
 
@@ -146,6 +146,8 @@ The \texttt{R} function for Shapiro-Wilk Normality test is \texttt{shapiro.test}
 %====================
 \subsection*{Network Construction}
 \subsubsection*{Correlation network construction}
+
+% Network analysis was performed using the ----. More . Major practical steps are described as follows. First, an RA matrix, a matrix of soil variable and OTU annotation file were prepared in the formats as guided in the pipline. Second, the RA matrix was submitted for network construction. Using default settings, a cutoff value (similarity theshold) for the similarity matrix was automatically generated. A link between a pair of OTUs is assigned when the correaltion beteen their RAs exceeds this threshold vlue. Third, calculations on global network properties, the individual nodes' centrality, and the module seperation and modularity" were oerformed. A module (or a cluster) is a group of nodes more densely connected to each other than to node outside
 
 The matrix can be viewed as an adjacency matrix of a weighted network. The matrix contains the correlation coefficient between each node (i.e., the variable). Thus, the matrix can be thought of as the population average of the network structure. Because we are looking at several specific links, we control for multiple testing by controlling the False Discovery Rate (FDR method) at 5\%. The generated network structure can be visualized through the \texttt{R} package qgraph \citep{qgraph}. Only connections that surpass the significance threshold are shown in the visual representation. 
 

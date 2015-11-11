@@ -30,8 +30,8 @@ network_stats<-function(dataset){
         stats<-data.frame(row.names((as.matrix(degree(temp.graph,normalized=TRUE)))),(as.matrix(degree(temp.graph,normalized=TRUE))),(as.matrix(betweenness(temp.graph))))
         names(stats)<-c("order","norm_degree","betweenness")
         
-        stats$rho_cut<-rhos[r]
-        stats$trt<-trts[t]
+        stats$rho_cut <- rhos[r]
+        stats$trt <-trts[t]
         stats$clustering_coeff<-transitivity(temp.graph, type="global")
         stats$clustering_coeff_rand<-transitivity(erdos.renyi.game(length(V(temp.graph)),length(E(temp.graph)),type = "gnm"))
         stats$cluster_ratio<-stats$clustering_coeff/stats$clustering_coeff_rand

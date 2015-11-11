@@ -1,0 +1,206 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% This is just an example/guide for you to refer to when submitting manuscripts to Frontiers, it is not mandatory to use Frontiers .cls files nor frontiers.tex  %
+% This will only generate the Manuscript, the final article will be typeset by Frontiers after acceptance.                                                 %
+%                                                                                                                                                         %
+% When submitting your files, remember to upload this *tex file, the pdf generated with it, the *bib file (if bibliography is not within the *tex) and all the figures.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% Version 3.1 Generated 2015/22/05 %%%
+%%% You will need to have the following packages installed: datetime, fmtcount, etoolbox, fcprefix, which are normally inlcuded in WinEdt. %%%
+%%% In http://www.ctan.org/ you can find the packages and how to install them, if necessary. %%%
+
+\documentclass{frontiersSCNS} % for Science, Engineering and Humanities and Social Sciences articles
+%\documentclass{frontiersHLTH} % for Health articles
+%\documentclass{frontiersFPHY} % for Physics and Applied Mathematics and Statistics articles
+
+%\setcitestyle{square}
+\usepackage{url,hyperref,lineno,microtype}
+\usepackage[onehalfspacing]{setspace}
+\linenumbers
+
+
+% Leave a blank line between paragraphs instead of using \\
+
+
+\def\keyFont{\fontsize{8}{11}\helveticabold }
+\def\firstAuthorLast{Sample {et~al.}} %use et al only if is more than 1 author
+\def\Authors{First Author\,$^{1,*}$, Co-Author\,$^{2}$ and Co-Author\,$^2$}
+% Affiliations should be keyed to the author's name with superscript numbers and be listed as follows: Laboratory, Institute, Department, Organization, City, State abbreviation (USA, Canada, Australia), and Country (without detailed address information such as city zip codes or street names).
+% If one of the authors has a change of address, list the new address below the correspondence details using a superscript symbol and use the same symbol to indicate the author in the author list.
+\def\Address{$^{1}$Laboratory X, Institute X, Department X, Organization X, City X , State XX (only USA, Canada and Australia), Country X \\
+$^{2}$Laboratory X, Institute X, Department X, Organization X, City X , State XX (only USA, Canada and Australia), Country X  }
+% The Corresponding Author should be marked with an asterisk
+% Provide the exact contact address (this time including street name and city zip code) and email of the corresponding author
+\def\corrAuthor{Corresponding Author}
+\def\corrAddress{Laboratory X, Institute X, Department X, Organization X, Street X, City X , State XX (only USA, Canada and Australia), Zip Code, X Country X}
+\def\corrEmail{email@uni.edu}
+
+
+
+
+\begin{document}
+\onecolumn
+\firstpage{1}
+
+\title[Running Title]{Differential networks of rice pest injuries related to production situations and yield levels} 
+
+\author[\firstAuthorLast]{\Authors} %This field will be automatically populated
+\address{} %This field will be automatically populated
+\correspondance{} %This field will be automatically populated
+
+\extraAuth{}% If there are more than 1 corresponding author, comment this line and uncomment the next one.
+%\extraAuth{corresponding Author2 \\ Laboratory X2, Institute X2, Department X2, Organization X2, Street X2, City X2 , State XX2 (only USA, Canada and Australia), Zip Code2, X2 Country X2, email2@uni2.edu}
+
+
+\maketitle
+
+
+\begin{abstract}
+
+%%% Leave the Abstract empty if your article falls under any of the following categories: Editorial Book Review, Commentary, Field Grand Challenge, Opinion or specialty Grand Challenge.
+\section{}
+%As a primary goal, the abstract should render the general significance and conceptual advance of the work clearly accessible to a broad readership. References should not be cited in the abstract.
+The changes of pest injuries relationships in provide the clues about the functions 
+
+
+\tiny
+ \keyFont{ \section{Keywords:} Network analysis, Rice pests,  Text Text Text Text Text } %All article types: you may provide up to 8 keywords; at least 5 are mandatory.
+\end{abstract}
+
+\section{Introduction}
+
+It has been realized that the cropping practices The number of organisms that can be harmful to rice is extremely large (Teng, 1990; Mew, 1991; Shepard et al., 1991). This can be ascribed to the very wide range of diverse agro- ecosystems where rice is being cultivated worldwide (Greenland, 1997; Dowling et al., 1998; Zeigler and Barclay, 2008). In this paper, we do not attempt to address one particular individual organism that is harmful to rice. We instead address crop health as an entity of its own, worthwhile characterization, identification, and anal- ysis. We define crop health as the entire combination of injuries (Zadoks, 1985); which can be defined as the agrophysiological out- comes of interactions between a growing plant in a crop stand and harmful organisms that may occur in a crop stand during the entire crop cycle duration. In this respect, we address crop health in a way very similar to that used in human public health (see e.g., Breslow, 1978; Kopelman, 2000; Dye, 2008), with the expecta- tion that, when operationally defined, crop health may become an instrument to (i) identify syndromes of multiple injuries that may lead to productivity constraints, (ii) specify individual pests that require management action, (iii) determine priorities for research, and (iv) predict plant protection risks that some production con- texts are, or could be, inviting. The approach has been used on a number of crop-based agro-ecosystems, including rice-based ones (Savary et al., 2006).
+
+% backgrounad of the study 
+
+% the backaground of differtial network analysis 
+
+The main purpose of the analyses reported here are to (1) characterize patterns of rice crop health in (2) a range of production situations (De Wit, 1982), including (3) different germplasm deployment patterns. A fourth objective is to assess the links between these three groups of attributes of rice-based agroecosystems, and test their significance. A fifth objective is to address some specific hypotheses involving individual components of crop health. One major difference of this work in comparison with studies reported earlier (Savary et al., 2006) is that it relies on information pertaining to the district scale, rather than the individual farmer’s field. A critical question to address is therefore whether the conclusions drawn from analysis at the aggregated (district) level would be congruent with conclusions drawn from analyses at the farmer’s field scale.
+
+Here, we ask whether network analysis can detact the influnce of the yield on the pest injury coexisting pattern.
+
+% the 4 para of introduction
+The aim of this study was to analyze how the structure of correlation network of pest injury co-occurrence are different over 5 locations under investigation (?, Indonesia, ?, India, ?, Philippines, ?, Thailand, and ?, Vietnam). By quantifying the important aspects of the position of the specific pest injury, information based on network analysis could help to understand the formation and characteristics of co-occurrence patterns. Furthermore, key factors for could be identified with this additional information.
+                                                                                                                                                                                                                                                                                                 
+
+%\begin{methods}
+\section{Material \& Methods}
+
+The information collected is of two kinds. First, general informa- tion was collected concerning the general environment of the year (e.g., occurrence of drought or floods), overall farmers’ practices (usually at the district level) with respect to fertilizer use, varieties deployed, crop establishment methods, water supply and availabil- ity, and pesticide use. This first set of information is assembled each year in the POS Report in the form of a narrative. This narrative for the POS of 2005 was summarized, normalized across states (i.e., across different teams which had slightly different approaches and emphases), and synthesized (Table 1) in order to generate a series of variables accounting for production situations (De Wit, 1982) and for germplasm deployment patterns.The second group of information specifically addresses crop health (Table 1). Each district in a state was represented by a vector of variables representing the levels of (1) injuries on the foliage, (2) injuries on tillers, (3) injuries on panicles and grain, and (4) injuries on whole plant units (plant units being hills in the case of trans- planted crops or plants borne by individual seeds in the case of direct-seeded rice stands; Table 1). Injuries include:
+LB: leaf blast; BS: brown spot; LS: leaf scald; NBS: narrow brown spot; BLB: bacterial blight; BLS: bacterial leaf streak; LF: leaf
+folder; RH: rice hispa; CW: cutworm; WM: whorl maggot in thefirst group (foliage). SHB: sheath blight; SHR: sheath rot; SB: stem borers; BPH: brownplant hopper; WPH: white back plant hopper; GM: gall midge;GLH: green leaf hopper; AW: armyworm; RT: rats (tillers).NB: neck blast; RB: rice bug (Gandhi bug); FSM: false smut; BK:bakanae (panicles and grain).Rice tungro disease: RTD (whole plant units).
+
+Decisions thus had to be made in such groupings, as injuries had to be ascribed, at least in a first stage of our analysis, in only one such group. For instance, we chose to include SB as a primary source of tiller damage (‘dead hearts’), although stem borers also damage reproductive tillers (‘white heads’). We also chose to include sheath blight as a tiller-damaging agent, although the disease also affects the foliage. We also chose to group flying insects (BPH, GLH), as well as rats (RT; although the latter could be included in whole-plant causes of injuries), under the tiller-damaging group of pests. These choices are based on the level of plant hierarchy where injuries are most easily recognized (SHB), when they are most likely to be noticed given the general timing of visits (SB), and/or more eas- ily counted or assessed (BPH, GLH, RT). Such grouping was only meant to conveniently represent the nature of injuries; it has no consequences on the conclusions we draw from our analyses. It is important to note that we do not refer here to individual species of organisms, but instead to the injuries they cause to the rice crops.
+
+The data are described in the previous article. We attempt to differentiate the patterns of co-occurrence of rice pest injuries by constructing the networks from two type of production situations subgroups of dataset from survey data. We identify 
+
+\subsection{Data analysis}
+A first purpose of this analysis was to assess whether the data assembled in the Production-Oriented Survey for 2005 enable to produce a description of production situations, germplasm deploy- ment patterns, and rice crop health syndromes, and of their associations. A second purpose was to test the strength of such relationships, if existing. As Table 1 indicates, the bulk of the avail- able information is qualitative, either ordinal (e.g., injuries due to harmful organisms), or cardinal (e.g., crop establishment method, rotation type; Savary et al., 1995). An approach was thus devel- oped to enable producing such descriptions, identify relationships amongst variables, and test their strength.The first groups of methods – ‘data description’ – may be seen as a sequence of linked initial steps for characterization, grouping, and portraying. These include (i) cluster analyses (e.g., Sokal and Sneath, 1963; Fisher and Van Ness, 1971; Benzécri, 1973a) on the three groups of attributes of interest at the district level (health syndromes, production situations, and germplasm deployment), which were conducted on coded variables with a chi-square met- ric, (ii) examination of groupings achieved through clusterings for each of the three groups of attributes; for coded ordinal variables, this implied a de-transformation of the coded data, and the compu- tation of means, and (iii) multiple correspondence analysis; which enables to visually assess statistical proximity of variables at their different levels.
+
+\subsection*{Cluster analysis}
+Cluster analysis using nearest neighbor and chi-square distance were applied to categorize the variables related to cropping practices or site-specific of cropping clusters of pest injuries. These fields
+
+ performed  in subsets representing each site, in order to determine site-specific patterns of cropping practices and variables related to production situation were
+ Cluster analyses were restricted to those variables which were well documented in all 129 districts. A series of five hierarchical cluster analyses with a chi-square distance and the Ward minimum variance method (Fisher and Van Ness, 1971; Wilkinson et al., 2007) were conducted, to (1) characterize injury profiles due to diseases only; (2) characterize injury profiles due to insects only; (3) char- acterize crop health syndromes, that is, combined disease and pest injuries; (4) characterize production situations; and (5) character-ize rice germplasm deployment pattern in each district. Thus, the first analysis involved the (categorized) minimum and maximum levels of LB, NB, BS, SHB, FSM, BLB (i.e., 12 variables; see Table 1 for symbols); the second analysis involved the (categorized) mini- mum and maximum levels of SB, LF, BPH, GM (i.e., 8 variables); the third analysis involved the combination of the above 20 variables; the fourth analysis involved 8 variables: CEM, PC1, ROT1, ROT2, N, P, K, LFORM; and the fifth analysis involved categorized levels of three variables only: FREQ HYV, FREQ TRAD, HYB USE. Owing to the relative small size of the sample, no more than five groups per analysis were defined, in order to enable further testing, especially chi-square tests (Dagnélie, 1973). Group assignment was then used in further analyses (see e.g., Savary et al., 1995).Each cluster was then summarized in terms of mode and range (of the categorized variables) as well as mean and standard error of the mean (for the corresponding quantitative variables, or, the back-transformed value of the qualitative, ordinal, variables, such as injury levels). Such a cluster synthesis was conducted for all variables, including those not used in the clustering itself.
+
+
+\subsection*{Co-occurence alaysis}
+
+We modified the scripts, which is designed to test for difference in co-occurrence patterns across locations.  We considered co-occurrence both of positive and negative correlations based on Spearman's rank based correlation between paris of pest injuries within each dataset with the strength of relationship represented by the correlation coefficient. The coefficients with $p$-values less than $p$ = 0.05 were considered. Negative correlations (indicative of) were also included in analysis. However, before analyzing the data, identifying  outlier sample using absolute hierarchical cluster analysis was performed.
+
+
+\subsection{Network analysis}
+
+Network models illustrated the co-occurring injuries within same locations  where injuries represent nodes and the presence of a co-occurrence relationship based on correlation is represented by an edge. These correlation relation- ships were generated for each pair of microbial taxa within each ecosystem replicate as long as both taxa had abundance greater than 0. We made a consensus network of co-occurrence relationships within each ecosystem based on the strength of the correlation (ρ from the Spearman’s correlation), and co-occurrence relationships were only included if they occurred across all ecosystem replicates. Though this method has been illustrated to produce some spurious co-occurrence relationships, this rank-based correlation statistic does not require any transformation of variables to fit assumptions of normality and may outperform Pearson’s correlations. To increase our level of stringency that may reduce the appearance of spurious co-occurrences within our networks, pairwise relationships had to be consistent across all datasets of a given location, greatly reducing the number of co-occurrence pairs.
+
+Networks were produced using the igraph package where each network was the union of positive co-occurrences or negative co-occurrences (less than −0.25 or greater than 0.25) that were consistent within each ecosystem. Unconnected nodes were removed along with loops that indicate pest injuries  were correlated with themselves using the “delete.vertices” and “simplify” functions, respectively.
+
+
+We were also interested in generating statistics that describe the network that may be important for understanding co-occurrence relationships. We produced network statistics that describe the position and connectedness of microorganisms within each co-occurrence network. This included normalized node degree, which is the number of co-occurrence relationships that a microorganism is involved in a network normalized by the total number of nodes using the “degree” function (igraph package). We also calculated betweenness scores for each microbial taxonomic group using the “between- ness” function from igraph, which is defined by the number of paths through a focal microbial node. Additionally, we calculated clustering coefficients using the “transitivity” function for comparison to other networks.
+
+\subsection{Differential correlations}
+We applied DiffCorr package in R to identiy differntial correlation between 2 cluster based on Fisher's $z$-test.
+Fisher's $z$-test was used to identify significant differences between 2 correlations, based on its stringency test and its provision of conservative estimates of true differential correlations among molecules between 2 experimental conditions in the survey data. To test whether the 2 correlation coefficients were significantly different, we first transformed correlation coefficients for each of the 2 conditions, $r_A$ and $r_B$, into Z_A and Z_B, respectively. The Fisher's transformation of coefficient r_A is defined by: 
+
+Z = \frac{1}{2}\log{\frac{1+r_A}{1-r_A}}}
+. Similarly, Fisher's z-transformation of r is defined as
+
+\begin{equation}
+Z = \frac{Z_A - Z_B}{\squa{\frac{1}{n_A} + \frac{1}{n_B}}}
+\end{equation}
+
+\section{Results}
+
+\subsection{Characterization of productionsituations}
+
+\subsection{Figures}
+Frontiers requires figures to be submitted individually, in the same order as they are referred to in the manuscript. Figures will then be automatically embedded at the bottom of the submitted manuscript. Kindly ensure that each table and figure is mentioned in the text and in numerical order. Permission must be obtained for use of copyrighted material from other sources (including the web). Please note that it is compulsory to follow figure instructions. Figures which are not according to the guidelines will cause substantial delay during the production process.
+
+\section{Discussion}
+
+
+\section*{Disclosure/Conflict-of-Interest Statement}
+%Frontiers follows the recommendations by the International Committee of Medical Journal Editors (http://www.icmje.org/ethical_4conflicts.html) which require that all financial, commercial or other relationships that might be perceived by the academic community as representing a potential conflict of interest must be disclosed. If no such relationship exists, authors will be asked to declare that the research was conducted in the absence of any commercial or financial relationships that could be construed as a potential conflict of interest. When disclosing the potential conflict of interest, the authors need to address the following points:
+%•	Did you or your institution at any time receive payment or services from a third party for any aspect of the submitted work?
+%•	Please declare financial relationships with entities that could be perceived to influence, or that give the appearance of potentially influencing, what you wrote in the submitted work.
+%•	Please declare patents and copyrights, whether pending, issued, licensed and/or receiving royalties relevant to the work.
+%•	Please state other relationships or activities that readers could perceive to have influenced, or that give the appearance of potentially influencing, what you wrote in the submitted work.
+
+The authors declare that the research was conducted in the absence of any commercial or financial relationships that could be construed as a potential conflict of interest.
+
+\section*{Author Contributions}
+%When determining authorship the following criteria should be observed:
+%•	Substantial contributions to the conception or design of the work; or the acquisition, analysis, or interpretation of data for the work; AND
+%•	Drafting the work or revising it critically for important intellectual content; AND
+%•	Final approval of the version to be published ; AND
+%•	Agreement to be accountable for all aspects of the work in ensuring that questions related to the accuracy or integrity of any part of the work are appropriately investigated and resolved.
+%Contributors who meet fewer than all 4 of the above criteria for authorship should not be listed as authors, but they should be acknowledged. (http://www.icmje.org/roles_a.html)
+
+The statement about the authors and contributors can be up to several sentences long, describing the tasks of individual authors referred to by their initials and should be included at the end of the manuscript before the References section.
+
+
+\section*{Acknowledgments}
+Text Text Text Text Text Text  Text Text Text Text Text Text Text Text  Text Text Text Text Text Text Text Text Text  Text Text Text. Text Text Text Text Text Text  Text Text Text Text Text Text Text Text  Text Text Text Text Text Text Text Text Text  Text Text Text. 
+
+
+\textit{Funding\textcolon} Text Text Text Text Text Text  Text Text.
+
+\section*{Supplemental Data}
+Supplementary Material should be uploaded separately on submission, if there are Supplementary Figures, please include the caption in the same file as the figure. LaTeX Supplementary Material templates can be found in the Frontiers LaTeX folder
+
+Text Text Text Text Text Text  Text Text Text Text Text Text Text Text  Text Text Text Text Text Text Text Text Text  Text Text Text.
+
+
+\bibliographystyle{frontiersinSCNS_ENG_HUMS} % for Science, Engineering and Humanities and Social Sciences articles, for Humanities and Social Sciences articles please include page numbers in the in-text citations
+%\bibliographystyle{frontiersinHLTH&FPHY} % for Health and Physics articles
+\bibliography{test}
+
+%%% Upload the *bib file along with the *tex file and PDF on submission if the bibliography is not in the main *tex file
+
+\section*{Figures}
+
+%%% Use this if adding the figures directly in the mansucript, if so, please remember to also upload the files when submitting your article
+%%% There is no need for adding the file termination, as long as you indicate where the file is saved. In the examples below the files (logo1.jpg and logo2.eps) are in the Frontiers LaTeX folder
+%%% If using *.tif files convert them to .jpg or .png
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[width=10cm]{logo1}% This is a *.jpg file
+\end{center}
+ \textbf{\refstepcounter{figure}\label{fig:01} Figure \arabic{figure}.}{ Enter the caption for your figure here.  Repeat as  necessary for each of your figures }
+\end{figure}
+
+%\begin{figure}
+%\begin{center}
+%\includegraphics[width=10cm]{logo2}% This is an *.eps file
+%\end{center}
+%\textbf{\refstepcounter{figure}\label{fig:02} Figure \arabic{figure}.}{ Enter the caption for your figure here.  Repeat as  necessary for each of your figures }
+%\end{figure}
+
+%%% If you don't add the figures in the LaTeX files, please upload them when submitting the article.
+
+%%% Frontiers will add the figures at the end of the provisional pdf automatically %%%
+
+%%% The use of LaTeX coding to draw Diagrams/Figures/Structures should be avoided. They should be external callouts including graphics.
+
+\end{document}

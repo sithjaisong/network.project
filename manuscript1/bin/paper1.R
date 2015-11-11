@@ -1,347 +1,429 @@
-# This script is the R script for running test the corelation with the Spearman correlation for both the cropping practice and crop injuires in differenct production environments.
+library(RCurl) # run this package for load the data form the website 
 
-###Load libraries ####
-require(dplyr)
-require(ggplot2)
-require(gridExtra)
-require(pheatmap)
-require(plyr)
-require(htmlwidgets)
-require(igraph)
-require(lattice)
+file <- getURL("https://docs.google.com/spreadsheets/d/1zB7gNdI7Nk7SuHuPWcjzaKnjuwkvL6sOVMo0zMfuV-c/pub?gid=558862364&single=true&output=csv") # load data from the google drive
+
+data <- read.csv(text = file) # read data which is formated as the csv
+
+#####==== get the map ====####
+
+library(ggmap)
+mark.data <- data[, names(data) %in% c("Fno", "Lat", "Long")]
+mapgilbert <- get_map(location = c(lon = mean(mark.data$Long), lat = mean(mark.data$Lat)), 
+                      zoom = 4, maptype = "satellite", scale = 2)
+
+ggmap(mapgilbert) + geom_point(data = mark.data, aes(x = Long, y = Lat, 
+                                                     fill = "red", alpha = 0.8), size = 3, shape = 21) + guides(fill = FALSE, 
+                                                                                                                alpha = FALSE, size = FALSE)
+# library(rworldmap) names(data) mark.data <- data[, names(data) %in%
+# c('Fno', 'Lat', 'Long')] map <- get_map(location = 'India and
+# Southeast Asia', zoom = 4) newmap <- getMap(resolution = 'low')
+# plot(newmap, xlim = c(70, 120), ylim = c(-10, 20), asp = 1)
+# points(mark.data$Long, mark.data$Lat, col = 'red', cex = .6)
+
+
+####==== Loading the packages ====####
+library(dplyr)  # arrange data structure
+library(plyr)
+library(reshape)
+library(reshape2)
 library(lubridate)
-require(psych)
-require(qgraph)
-require(reshape)
-require(reshape2)
-require(RColorBrewer)
-require(WGCNA)
-require(XLConnect)
+library(ggplot2)
+library(gridExtra)
+library(scales)
+library(cowplot)
+library(bioDist)  # Co-ocurrance analysis
+library(vegan)  # Co-ocurrance analysis
+library(WGCNA)
+library(igraph)  # Network analysis package
+library(qgraph)
 
-#### Set working directory and filepath ####
-#wd <- 'C:/Users/sjaisong/Documents/GitHub/network.analysis.skep1' 
-wd <- "~/Documents/Github/network.analysis.skep1" # for Mac
-setwd(wd)
 
-#### Loading the survey data #####
-Filepath <- "~/Google Drive/1.SKEP1/SKEP1survey.xls" # for mac users
-#Filepath <- "E:/Google Drive/Data/SYT-SKEP/Survey/SKEP1survey.csv" # for window users
-data <- readWorksheetFromFile(Filepath, sheet = 1) # use the XLCOnnect package
-#str(data)
+####==== tidy the data ====####
+data[data == "-"] <- NA  # replace '-' with NA
 
-# change the names of variables
-names(data) <- tolower(names(data))
+data[data == ""] <- NA  # replace 'missing data' with NA
 
-#### Delete the unnessary variables variables without data (NA) ####
-#### Keep only the cropping practices and injury profiles #####
+names(data) <- tolower(names(data))  # for more consistancy
 
-data$phase <- NULL # there is only one type yype of phase in the survey
-data$identifier <- NULL # this variable is not included in the analysis
-data$village <- NULL
-data$fa <- NULL # field area is not include in the analysis
-data$fn <- NULL # farmer name can not be included in this survey analysis
-data$fp <- NULL # I do not know what is fp
-data$lfm <- NULL # there is only one type of land form in this survey
-data$ced <- NULL # Date data can not be included in the network analysis
-data$cedjul <- NULL
-data$hd <- NULL # Date data can not be included in the network analysis
-data$hdjul <- NULL
-data$cvr <- NULL
-data$varcoded <- NULL # I will recode them 
-data$fym.coded <- NULL
-data$mu <- NULL # no record
-data$nplsqm <- NULL
-data$fno <- NULL
-# data$country <- NULL
-data$year <- NULL
-#data$season <- NULL
-data$lat <- NULL
-data$long <- NULL
-data$pc <- NULL
-data$ast <- NULL
-data$ccd <- NULL
-data$vartype <- NULL
-data$fym <-NULL
-data$fymcoded <-NULL
-## remove the plant info
-data$yield <- NULL
-data$cs <- NULL
-data$dscum <- NULL
-data$wecum <- NULL
-data$ntmax <- NULL
-data$nltmax <- NULL
-data$npmax <- NULL
-data$nlhmax <- NULL
-data$cem <- NULL
-# no data
-data$lm <- NULL
-data$rh <- NULL
-data$thr <- NULL
-data$pm <- NULL
-####end of remove non cropping practice and injury profiles
 
-########================ Use Vietnam data ============####
-vnm.ds <- data %>% filter(country == "VNM" & season == "DS")
+data <- data[, !names(data) %in% c("phase", "identifier", "village","css", "ccd", 
+                                   "year", "season", "lat", "long", "fa", "fn",
+                                   "fp", "pc", "cem", "ast", "vartype", "varcoded", 
+                                   "fym", "fymcoded", "n", "p", "k", "mf", "wcp", "iu", "hu",
+                                   "fu", "cs", "ldg", "yield", "dscum", "wecum", 
+                                   "nplsqm", "npmax", "nltmax", "nlhmax", "lfm", 
+                                   "ced", "cedjul", "hd", "hdjul", "cvr", "varcode", 
+                                   "fymcode", "mu", "nplsm", "rbpx")
+             ]
 
-# correct technically
-vnm.ds <- vnm.ds %>%
-        select(-c(country, season)) %>%
-        transform( n = as.numeric(n),
-                  p = as.numeric(p) ,
-                  k = as.numeric(k),
-                  mf = as.numeric(mf),        
-                  wcp = as.factor(wcp),      
-                  iu = as.numeric(iu),     
-                  hu = as.numeric(hu),      
-                  fu = as.numeric(fu),      
-                  ldg  =  as.numeric(ldg),  
-                  waa = as.numeric(waa),      
-                  wba = as.numeric(wba) ,   
-                  dhx =  as.numeric(dhx),  
-                  whx =  as.numeric(whx),     
-                  ssx  = as.numeric(ssx),  
-                  wma = as.numeric(wma), 
-                  lfa = as.numeric(lfa),
-                  lma = as.numeric(lma),   
-                  rha  = as.numeric(rha) ,
-                  thrx = as.numeric(thrx),    
-                  pmx = as.numeric(pmx),    
-                  defa  = as.numeric(defa) ,
-                  bphx = as.numeric(bphx),   
-                  wbpx = as.numeric(wbpx),    
-                  awx  = as.numeric(awx), 
-                  rbx =as.numeric(rbx),   
-                  rbbx = as.numeric(rbbx),  
-                  glhx  = as.numeric(glhx), 
-                  stbx=as.numeric(stbx),    
-                  rbpx = as.numeric(rbpx), 
-                  hbx= as.numeric(hbx),
-                  bbx = as.numeric(bbx),    
-                  blba = as.numeric(blba),    
-                  lba = as.numeric(lba),    
-                  bsa = as.numeric(bsa),    
-                  blsa = as.numeric(blsa),  
-                  nbsa = as.numeric(nbsa),  
-                  rsa  = as.numeric(rsa),   
-                  lsa = as.numeric(lsa),    
-                  shbx = as.numeric(shbx) ,  
-                  shrx = as.numeric(shrx),    
-                  srx= as.numeric(srx),    
-                  fsmx = as.numeric(fsmx),   
-                  nbx =  as.numeric(nbx),   
-                  dpx = as.numeric(dpx),    
-                  rtdx  = as.numeric(rtdx),  
-                  rsdx  = as.numeric(rsdx),
-                  gsdx  =as.numeric(gsdx),   
-                  rtx = as.numeric(rtx)
-) 
+data <- transform(data, country = as.factor(country), waa = as.numeric(waa), 
+                  wba = as.numeric(wba), dhx = as.numeric(dhx), whx = as.numeric(whx), 
+                  ssx = as.numeric(ssx), wma = as.numeric(wma), lfa = as.numeric(lfa), 
+                  lma = as.numeric(lma), rha = as.numeric(rha), thrx = as.numeric(thrx), 
+                  pmx = as.numeric(pmx), defa = as.numeric(defa), bphx = as.numeric(bphx), 
+                  wbpx = as.numeric(wbpx), awx = as.numeric(awx), rbx = as.numeric(rbx), 
+                  rbbx = as.numeric(rbbx), glhx = as.numeric(glhx), stbx = as.numeric(stbx), 
+                  hbx = as.numeric(hbx), bbx = as.numeric(bbx), blba = as.numeric(blba), 
+                  lba = as.numeric(lba), bsa = as.numeric(bsa), blsa = as.numeric(blsa), 
+                  nbsa = as.numeric(nbsa), rsa = as.numeric(rsa), lsa = as.numeric(lsa), 
+                  shbx = as.numeric(shbx), shrx = as.numeric(shrx), srx = as.numeric(srx), 
+                  fsmx = as.numeric(fsmx), nbx = as.numeric(nbx), dpx = as.numeric(dpx), 
+                  rtdx = as.numeric(rtdx), rsdx = as.numeric(rsdx), gsdx = as.numeric(gsdx), 
+                  rtx = as.numeric(rtx))
 
-levels(vnm.ds$wcp)[levels(vnm.ds$wcp) == "hand"] <- 1
-levels(vnm.ds$wcp)[levels(vnm.ds$wcp) == "herb"] <- 2
-levels(vnm.ds$wcp)[levels(vnm.ds$wcp) == "herb-hand"] <- 3
 
-vnm.ds$wcp <- as.numeric(as.factor(vnm.ds$wcp))
+num.data <- apply(data[, -c(1, 2)], 2, as.numeric)  # create dataframe to store the numerical transformation of raw data excluded fno and country
 
-describe(vnm.ds)
-# check the data properties
+num.data <- as.data.frame(as.matrix(num.data))  # convert from vector to matrix
 
-#vnm.ds <- vnm.ds[ ,apply(vnm.ds, 2, var, na.rm = TRUE) != 0] # exclude the column with variation = 0
+data <- cbind(data[, c("fno", "country")], num.data)
 
-#vnm.ds <- vnm.ds[complete.cases(vnm.ds),] # exclude row which cantain NA
+data <- data[, apply(data[, -c(1, 2)], 2, var, na.rm = TRUE) != 0]  # exclude the column with variation = 0
 
-vnm.ds$rbpx <- NULL
+data <- data[complete.cases(data), ]  # exclude row which cantain NA
 
-######### Drow the histrogram #####
-names(vnm.ds)
-data <-  vnm.ds
-m.data <- melt(data)
-varnames <- colnames(data)
-i <- 1
-out <- NULL
-for(i in 1:length(varnames)) {
-        gdata <- m.data %>% filter(variable == varnames[i])
-        p <- ggplot(gdata, aes(x = value)) + 
-                geom_histogram(stat = "bin") + ggtitle(paste("Histogram of", varnames[i], sep = " "))
-        dev.new()
-        print(p) 
-        out[[i]] <- p
+
+
+####==== exploring graph of the survey data ====#### 
+m.data <- melt(data[, !names(data) %in% c("fno", "country")])
+
+varnames <- colnames(data[, !names(data) %in% c("fno", "country")])
+
+p <- list()
+
+for (i in 1:length(varnames)) {
+  
+  gdata <- m.data %>% filter(variable == varnames[i])
+  p[[i]] <- ggplot(gdata, aes(x = value)) + geom_histogram(stat = "bin") + 
+    ggtitle(paste("Histogram of", varnames[i], sep = " "))
+  
 }
 
-gdata <- m.data %>% filter(variable == varnames[1])
-p <- ggplot(gdata, aes(x = value)) + 
-        geom_histogram(stat = "bin") + ggtitle(paste("Histogram of", varnames[1], sep = " "))
+plot_grid(p[[1]], p[[2]], p[[3]], p[[4]], p[[5]], p[[6]], p[[7]], p[[8]], 
+          p[[9]], p[[10]], p[[11]], p[[12]], p[[13]], p[[14]], p[[15]], p[[16]], 
+          p[[17]], p[[18]], p[[19]], p[[20]], p[[21]], p[[22]], p[[23]], p[[24]], 
+          p[[25]], p[[26]], p[[27]], p[[28]], p[[29]], p[[30]], p[[31]], ncol = 3, 
+          align = "v")
 
-grid.arrange(out[[1]],
-             out[[2]],
-             out[[3]],
-             out[[4]],
-             out[[5]],
-             out[[6]],
-             out[[7]],
-             out[[8]],
-             out[[9]],
-             out[[10]],
-             out[[11]],
-             out[[12]],
-             out[[13]],
-             out[[14]],
-             out[[15]],
-             out[[16]],
-             out[[17]],
-             out[[18]],
-             out[[19]],
-             out[[20]],
-             out[[21]],
-             out[[22]],
-             out[[23]],
-             out[[24]],
-             out[[25]],
-             out[[26]],
-             out[[26]],
-             out[[28]],
-             out[[29]],
-             out[[30]],
-             out[[32]],
-             out[[33]],
-             out[[34]],
-             out[[35]],
-             out[[36]],
-             out[[37]],
-             out[[38]],
-             out[[39]],
-             out[[40]],
-             out[[41]],
-             out[[42]],
-             out[[43]],
-             out[[44]],
-             out[[45]],
-             out[[46]],
-             out[[47]],
-             nrow = 10
-)
 
-# rename the variables
-abbre <- c("CEM","N", "P", "K", "MF", "WCP", "IU", "HU", "FU", "LDG", "WA", "WB" ,"DH", "WH", "SS", "WM", "LF", "DEF", "BPH", "WPH", "AM", "RB", "RBB", "GLH", "STB","RBP","HB","BB", "BLB",  "LB", "BS", "BLS", "NBS", "RS", "LS", "SHB", "SHR", "SR", "FSM", "NB", "DP", "RTD", "RSD","GSD", "RT")
-names(data) <-abbre
 
-# compute the corr eff based on different corr measures
-pearson <- cor(vnm.ds, method = "pearson", use = "pairwise.complete.obs") # pearson correlation
 
-spearman <- cor(vnm.ds, method = "spearman", use = "pairwise.complete.obs") # spearman correlation
+### Co-occurence Analysis
+start.IP <- "dhx"  # set to read the data from column named 'dhx'
 
-kendall <- cor(vnm.ds, method = "kendall", use = "pairwise.complete.obs")# kendall correlation
+end.IP <- "rtx"  # set to read the data from column named 'rtx'
 
-biweight <- bicor(vnm.ds, use = "pairwise.complete.obs") # Biweight Midcorrelation from WGCNA package
+start.col.IP <- match(start.IP, names(data))  # match function for check which column of the data mactch the column named following the conditons above
 
-#### Cluster Analysis using Heat map ####
-# compare similarity of corr eff from each measure using cluster analysis base on Euclid
-### Peason correlation
-df.pearson <- as.data.frame(pearson)
-df.pearson.corval <- df.pearson[1]
-colnames(df.pearson.corval) <- "Pearson"
+end.col.IP <- match(end.IP, names(data))  # match function for check which column of the data mactch the column named following the conditons above
 
-### Spearman correlation
+IP.data <- data[start.col.IP:end.col.IP]  # select the columns of raw data which are following the condition above
 
-df.spear <- as.data.frame(spearman)
-df.spear.corval <- df.spear[1]
-colnames(df.spear.corval) <- "Spearman"
+IP.data <- IP.data[, apply(IP.data, 2, var, na.rm = TRUE) != 0]  # exclude the column (variables) with variation = 0
 
-### Kendall correlation
-df.kendall <- as.data.frame(kendall)
-df.kendall.corval <- df.kendall[1]
-colnames(df.kendall.corval) <- "Kendall"
+# 
+sampleTree <- hclust(dist(IP.data[-1]), method = "average")
 
-### Biweight Midcorrelation
-df.biweight <- as.data.frame(biweight)
-df.biweight.cor.val <- df.biweight[1]
-colnames(df.biweight.cor.val) <- "Biweight"
+plot(sampleTree, main = "Sample clus")
 
-#====================================================
-##### Combine correlation value of each method ######
-#===================================================
-# will add more correlation
-cor.bind <- cbind(df.pearson.corval,
-                  df.spear.corval,
-                  df.kendall.corval,
-                  df.biweight.cor.val)
+# Plot a line to show the cut
+abline(h = 265, col = "red")
 
-##### Cluster Analysis and correlation matrix #####
-cor.of.cor <- cor(cor.bind)
-pheatmap(cor.of.cor, cellwidth = 50, cellheight = 50, fontsize = 16)
+country <- data$country  #combine two cloumn names country and PS
 
-# from here the heat map and dendrogram showing that non-ranking measure and ranking measure still different in the outputs.
+IP.data <- cbind(country, IP.data)
 
-##### network graph #####
-cropping <- 1:9
-injuries <- 10:31
-groups_info <- list(cropping, injuries)
+IP.data[is.na(IP.data)] <- 0
 
-diag(spearman) <- 0
+name.country <- as.vector(unique(IP.data$country))
 
-q.spearman <- qgraph(
-        spearman, 
-        layout = "spring", 
-        threshold = 0.20,
-        #cut = 0.3,
-        maximum = 1,
-        #sampleSize = nrow(data),
-        #minimum = "sig", 
-        groups = groups_info, 
-        color = c("skyblue", "wheat"),
-        vsize = 5, 
-        line = 3,
-        posCol = "forestgreen",
-        negCol = "firebrick3",
-        borders = FALSE,
-        legend = FALSE,
-        vTrans = 200,
-        bonf = TRUE,
-        # filetype = "jpg",
-        #filename = "figs/APPSnetwork5"
-        title = "Spearman"
-)
-c.spearman <- qgraph(
-        spearman, 
-        layout = "circle", 
-        threshold = 0.20,
-        #cut = 0.3,
-        maximum = 1,
-        #sampleSize = nrow(data),
-        #minimum = "sig", 
-        groups = groups_info, 
-        color = c("skyblue", "wheat"),
-        vsize = c(1.5, 10), # vsiz = c(1.5, 10)
-        line = 3,
-        posCol = "forestgreen",
-        negCol = "firebrick3",
-        borders = FALSE,
-        legend = FALSE,
-        vTrans = 200,
-        bonf = TRUE,
-        # filetype = "jpg",
-        #filename = "figs/APPSnetwork5"
-        title = "Spearman"
-)
+# =====co_occurrence_pairwise.R====
+country.results <- matrix(nrow = 0, ncol = 7)  # create results to store the outputs
 
-c.auto <- qgraph(
-        cor_auto(data),
-        layout = "circle", 
-        threshold = 0.20,
-        #cut = 0.3,
-        maximum = 1,
-        #sampleSize = nrow(data),
-        #minimum = "sig", 
-        groups = groups_info, 
-        color = c("skyblue", "wheat"),
-        vsize = c(1.5, 10), # vsiz = c(1.5, 10)
-        line = 3,
-        posCol = "forestgreen",
-        negCol = "firebrick3",
-        borders = FALSE,
-        legend = FALSE,
-        vTrans = 200,
-        bonf = TRUE,
-        # filetype = "jpg",
-        #filename = "figs/APPSnetwork5"
-        title = "Spearman"
-)
+options(warnings = -1)  # setting not to show the massages as the warnings
+
+for (a in 1:length(name.country)) {
+  # subset the raw data by groups of countries and cluster of production
+  # situation
+  country.temp <- name.country[a]
+  # subset the dataset for those treatments
+  temp <- subset(IP.data, country == country.temp)
+  
+  # in this case the community data started at column 6, so the loop for
+  # co-occurrence has to start at that point
+  for (b in 2:(dim(temp)[2] - 1)) {
+    # every species will be compared to every other species, so there has
+    # to be another loop that iterates down the rest of the columns
+    for (c in (b + 1):(dim(temp)[2])) {
+      
+      # summing the abundances of species of the columns that will be
+      # compared
+      species1.ab <- sum(temp[, b])
+      
+      species2.ab <- sum(temp[, c])
+      # if the column is all 0's no co-occurrence will be performed
+      if (species1.ab > 1 & species2.ab > 1) {
+        
+        test <- cor.test(temp[, b], temp[, c], method = "spearman", 
+                         na.action = na.rm, exact = FALSE)
+        # There are warnings when setting exact = TRUE because of ties from the
+        # output of Spearman's correlation
+        # stackoverflow.com/questions/10711395/spear-man-correlation and ties
+        # It would be still valid if the data is not normally distributed.
+        
+        rho <- test$estimate
+        
+        p.value <- test$p.value
+      }
+      
+      if (species1.ab <= 1 | species2.ab <= 1) {
+        
+        rho <- 0
+        
+        p.value <- 1
+      }
+      
+      new.row <- c(name.country[a], names(temp)[b], names(temp)[c], 
+                   rho, p.value, species1.ab, species2.ab)
+      
+      country.results <- rbind(country.results, new.row)
+      
+    }
+    
+  }
+  
+}
+
+country.results <- data.frame(data.matrix(country.results))
+
+names(country.results) <- c("country", "var1", "var2", "rho", "p.value", 
+                            "ab1", "ab2")
+
+# making sure certain variables are factors
+country.results$country <- as.factor(country.results$country)
+country.results$var1 <- as.character(as.factor(country.results$var1))
+country.results$var2 <- as.character(as.factor(country.results$var2))
+country.results$rho <- as.numeric(as.character(country.results$rho))
+country.results$p.value <- as.numeric(as.character(country.results$p.value))
+country.results$ab1 <- as.numeric(as.character(country.results$ab1))
+country.results$ab2 <- as.numeric(as.character(country.results$ab2))
+
+####==== thresholding ====####
+sub_country.results <- subset(country.results, as.numeric(as.character(p.value)) < 0.05)
+
+results_sub.by.country <- list()
+
+for(i in 1: length(name.country)){
+  
+  results_sub.by.country[[i]] <- subset(sub_country.results, country == name.country[i])
+}
+
+### Network analysis
+
+# head(results_sub.by.group[[1]][,2:3]) # get the list
+# layout(matrix(c(1:14), 9, 2, byrow = TRUE))
+png("Netcountry.png", units="px", width=2400, height=3600, res=300)
+layout(rbind(c(1,2), c(3,4), c(5,6)))
+
+
+cnet <- list()
+
+for (i in 1:length(name.country)) {
+  
+  cnet[[i]] <- graph.edgelist(as.matrix(results_sub.by.country[[i]][, 2:3]), directed = FALSE)
+  
+  l <- layout.circle(cnet[[i]])
+  
+  V(cnet[[i]])$color <- adjustcolor("slateblue1", alpha.f = .6)
+  V(cnet[[i]])$frame.color <- adjustcolor("slateblue1", alpha.f = .6)
+  V(cnet[[i]])$shape <- "circle"
+  V(cnet[[i]])$size <- 20
+  V(cnet[[i]])$label.color <- "white"
+  V(cnet[[i]])$label.font <- 2
+  V(cnet[[i]])$label.family <- "Helvetica"
+  V(cnet[[i]])$label.cex <- 0.7
+  
+  # == adjust the edge
+  E(cnet[[i]])$weight <- as.matrix(results_sub.by.country[[i]][, 4])
+  
+  E(cnet[[i]])$width <- abs(E(cnet[[i]])$weight) * 10
+  
+  col <- c("salmon", "forestgreen")
+  
+  colc <- cut(results_sub.by.country[[i]]$rho, breaks = c(-1, 0, 1), 
+              include.lowest = TRUE)
+  
+  E(cnet[[i]])$color <- col[colc]
+  
+  # == plot network model
+  plot(cnet[[i]], layout = l * 1, margin = -0.2, main = paste("network model of", name.country[i]))
+}
+
+dev.off()
+
+
+network.value <- list()
+
+for(i in 1:length(g)){
+  
+  E(g[[i]])$weight <- as.matrix(abs(results_sub.by.group[[i]][, 4]))
+  
+  network.value[[i]] <- data.frame(
+    id = V(g[[i]])$name, 
+    deg = degree(g[[i]]), # degree
+    bet = betweenness(g[[i]]), # betweenness
+    clo = closeness(g[[i]]), # closeness
+    eig = evcent(g[[i]])$vector,# egin.cent
+    cor = graph.coreness(g[[i]]), # coreness
+    tra = transitivity(g[[i]], type = c("local")) # cluster coefficients
+  )
+  
+  network.value[[i]]$res <- as.vector(lm(eig ~ bet, data = network.value[[i]])$residuals)
+  network.value[[i]]$group <- name.groups[i]
+}
+
+net.vertice.data <- as.data.frame(do.call("rbind", network.value))
+row.names(net.vertice.data) <- NULL
+
+
+net.vertice.data$id <- as.factor(net.vertice.data$id)
+net.vertice.data$group <- as.factor(net.vertice.data$group)
+m.net.vertice.data <- melt(net.vertice.data)
+
+# compare degree
+
+m.net.vertice.data %>% filter(variable == "deg") %>% 
+  ggplot(aes(x= value, y = id)) + 
+  geom_point(size = 3, color ="blue") +
+  facet_wrap(~group) +
+  theme_bw() +
+  theme(panel.grid.major.x =  element_blank(),
+        panel.grid.minor.x =  element_blank(),
+        panel.grid.major.y = element_line(color = "grey", linetype = 3)) +
+  ggtitle("Degree of each node in the injury profile network")
+
+m.net.vertice.data %>% filter(variable == "bet") %>% 
+  ggplot(aes(x= value, y = id)) + 
+  geom_point(size = 3, color ="blue") +
+  facet_wrap(~group) +
+  theme_bw() +
+  theme(panel.grid.major.x =  element_blank(),
+        panel.grid.minor.x =  element_blank(),
+        panel.grid.major.y = element_line(color = "grey", linetype = 3)) +
+  ggtitle("Betweenness of each node in the injury profile network")
+
+m.net.vertice.data %>% filter(variable == "bet") %>% 
+  ggplot(aes(x= value, y = id)) + 
+  geom_point(size = 3, color ="blue") +
+  facet_wrap(~group) +
+  theme_bw() +
+  theme(panel.grid.major.x =  element_blank(),
+        panel.grid.minor.x =  element_blank(),
+        panel.grid.major.y = element_line(color = "grey", linetype = 3)) +
+  ggtitle("Betweenness of each node in the injury profile network")
+
+m.net.vertice.data %>% filter(variable == "clo") %>% 
+  ggplot(aes(x= value, y = id)) + 
+  geom_point(size = 3, color ="blue") +
+  facet_wrap(~group) +
+  theme_bw() +
+  theme(panel.grid.major.x =  element_blank(),
+        panel.grid.minor.x =  element_blank(),
+        panel.grid.major.y = element_line(color = "grey", linetype = 3)) +
+  ggtitle("Closeness of each node in the injury profile network")
+
+m.net.vertice.data %>% filter(variable == "eig", group == "IDN_1") %>% 
+  ggplot(aes(x= value, y = reorder(id, value))) + 
+  geom_point(size = 3, color ="blue") +
+  facet_wrap(~group) +
+  theme_bw() +
+  theme(
+    panel.grid.major.x =  element_blank(),
+    panel.grid.minor.x =  element_blank(),
+    panel.grid.major.y = element_line(color = "grey", linetype = 3)
+  ) +
+  ggtitle("Eigenvector of each node in the injury profile network")
+
+m.net.vertice.data %>% filter(variable == "cor", group == "IDN_1") %>% 
+  ggplot(aes(x= value, y = reorder(id, value))) + 
+  geom_point(size = 3, color ="blue") +
+  facet_wrap(~group) +
+  theme_bw() +
+  theme(
+    panel.grid.major.x =  element_blank(),
+    panel.grid.minor.x =  element_blank(),
+    panel.grid.major.y = element_line(color = "grey", linetype = 3)
+  ) +
+  ggtitle("Eigenvector of each node in the injury profile network")
+
+
+
+# One method is to plot / regress eigenvector centrality on betweenness and examine the residue.
+
+# - A variable or node with high betweenness and low eigenvector centrality may be an importanct gatkeeper to a central actor
+# - A variable or node with low betweeness and hight eigenvector centrality may have unique access to central actor
+
+for(i in 1:length(network.value)){
+  plot <- ggplot(
+    network.value[[i]], aes(x = bet, y = eig,
+                            label = rownames(network.value[[i]]),
+                            color = res,
+                            size = abs(res))) +
+    xlab("Betweenness Centrality") +
+    ylab("Eigencvector Centrality") +
+    geom_text() +
+    ggtitle(paste("Key Actor Analysis for Injuiry Profiles of", name.groups[i]))
+  
+  print(plot) 
+}
+
+# ===================== The ideas ===========
+# dd <- degree.distribution(g[[1]], cumulative = T, mode = "all")
+# plot(dd, pch = 19, cex = 1, col = "orange", xlab = "Degree", ylab = "Cumulative Frequesncy")
+# distances(g[[1]])
+# #shortest_paths(g[[1]], 5)
+# all_shortest_paths(g[[1]], 1, 6:8)
+# mean_distance(g[[1]])
+# hist(degree(g[[1]]),  col = "lightblue", xlim = c(0, 10), xlab = "Vertex Degree", ylab = "Frequency", main = "")
+# hist(graph.strength(g[[1]]),  col = "pink", xlim = c(0, 5), xlab = "Vertex strength", ylab = "Frequency", main = "")
+
+#global.prop <- NULL
+#i <-1
+#for(i in 1:length(g)){
+#adj.mat <- as.matrix(get.adjacency(g[[i]], attr = "weight"))
+#new.global.prop <- as.data.frame(fundamentalNetworkConcepts(adj.mat))
+#names(new.global.prop) <- name.groups[i]
+#global.prop <- c(global.prop, new.global.prop)
+#net.result <- fundamentalNetworkConcepts(mat[[i]])
+#conformityBasedNetworkConcepts(mat)
+#}
+#sum.global <- as.data.frame(do.call("cbind", global.prop))
+#rownames(sum.global) <- c("Density", "Centralization", "Heterogeneity", "Mean ClusterCoef", "Mean Connectivity")
+
+
+
+# cleate all the possible pair of the variables
+# IP.list <- NULL
+#   for(i in 2:(dim(IP.data)[2]-1)){
+#      for(j in (i+1):(dim(IP.data)[2])){
+#       new.row <- c(names(IP.data)[i], names(IP.data)[2 + j])
+#       IP.list <- rbind(IP.list, new.row)			
+#     }
+#   }
+# 
+# IP.list <- as.data.frame(IP.list)
+# names(IP.list) <- c("var1", "var2")
+# IP.list$rho <- 0
+
+
+# results$newrho <- ifelse(abs(results$rho) > 0.25, results$rho, 0)
+#  
+# IDN1 <- results %>% filter(trt == "IDN_1")
+#  IDN2 <- results %>% filter(trt == "IDN_2")
+#  IND1 <- results %>% filter(trt == "IND_1")
+#  IND2 <- results %>% filter(trt == "IND_2")
+#  THA1 <- results %>% filter(trt == "THA_1")
+#  THA2 <- results %>% filter(trt == "THA_2")
+#  VNM1 <- results %>% filter(trt == "VNM_1")
+#  VNM2 <- results %>% filter(trt == "VNM_1")
+#  PHL1 <- results %>% filter(trt == "PHL_1")
