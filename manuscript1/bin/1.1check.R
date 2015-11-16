@@ -1,28 +1,25 @@
+#Load and run the script 1.load.R first 
+library(dplyr)
+library(psych)
 
-# remove the variables that are not included for analysis
-data$phase <- NULL # there is only one type yype of phase in the survey
-data$identifier <- NULL # this variable is not included in the analysis
-data$village <- NULL # remove name of village
-data$fa <- NULL # field area is not include in the analysis
-data$fn <- NULL # farmer name can not be included in this survey analysis
-data$fp <- NULL # I do not know what is fp
-data$lfm <- NULL # there is only one type of land form in this survey
-data$ced <- NULL # Date data can not be included in the network analysis
-data$cedjul <- NULL # remove crop establisment julian date data
-data$hd <- NULL # Date data can not be included in the network analysis
-data$hdjul <- NULL # remove harvest julian date
-data$cvr <- NULL # reove crop varieties
-data$varcoded <- NULL # I will recode them 
-data$fymcoded <- NULL # remove code data of fym
-data$mu <- NULL # no record of mullucicide data
-data$nplsqm <- NULL # remove number of plant per square meter
+# change the name of variables to small letter
+names(data) <- tolower(names(data))
 
-#======================================================================
-#=================== corract the variable type ========================
-#======================================================================
+# remove some columns numnessary
 
-data <- transform(data, 
+data <-  data %>% select(-c(phase,identifier, fa, fn, fp,
+                   lfm, ced, cedjul, hd, hdjul,
+                   cvr, varcoded, fymcoded, mu, nplsqm)
+                )
+
+data <- data %>% transform(
+                  fno = as.numeric(fno),
                   country = as.factor(country),
+                  year = as.factor(year),
+                  season = as.factor(season),
+                  lat = as.numeric(lat),
+                  long = as.numeric(long),
+                  village = as.character(village),
                   pc = as.factor(pc),
                   cem = as.factor(cem),     
                   ast = as.factor(ast),       
@@ -149,15 +146,26 @@ levels(data$cs)[levels(data$cs) == "good"] <- 4
 
 levels(data$cs)[levels(data$cs) == "very good"] <- 5
 
+## end of corraction
 
-### Pre-process before performing cluster analysis
+data <- as.tbl(data)
 
-#clean the data
-num.data <- apply(data[, -c(1,2)], 2, as.numeric) # create dataframe to store the numerical transformation of raw data excluded fno and country
+idn <- data %>% filter(country == "IDN")
 
-num.data <- as.data.frame(as.matrix(num.data)) # convert from vector to matrix
+ind <- data %>% filter(country == "IND")
 
-data <- cbind(data[ , c("fno", "country")], num.data)
+phi <- data %>% filter(country == "PHL")
+
+tha <- data %>% filter(country == "THA")
+
+vnm <- data %>% filter(country == "VNM")
+
+## exploratory analysis
+
+idn.new <- idn %>% select(pc:rtx)
+
+str(idn.new)
+describe(idn.new)
 
 data <- data[ , apply(data[, -c(1,2)], 2, var, na.rm = TRUE) != 0] # exclude the column with variation = 0
 
