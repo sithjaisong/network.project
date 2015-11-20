@@ -1,6 +1,22 @@
-#Load and run the script 1.load.R first 
+---
+title: "Exporatory analysis of the crop health survey data"
+author: "Sith J"
+date: "November 17, 2015"
+output: html_document
+---
+
+```{r}
+library(RCurl) # run this package for load the data form the website 
+library(readr)
+file <- getURL("https://docs.google.com/spreadsheets/d/1zB7gNdI7Nk7SuHuPWcjzaKnjuwkvL6sOVMo0zMfuV-c/pub?gid=558862364&single=true&output=csv") # load data from the google drive
+
+data <- read_csv(file, na = c(" ", "NA", "na", "-")) # read data which is formated as the csv
+```
+
+```{r}
 library(dplyr)
 library(psych)
+library(VIM)
 
 # change the name of variables to small letter
 names(data) <- tolower(names(data))
@@ -150,8 +166,11 @@ levels(data$cs)[levels(data$cs) == "very good"] <- 5
 
 ## end of corraction
 
-data <- as.tbl(data)
+```
 
+I subset the data by country.
+
+```{r}
 idn <- data %>% filter(country == "IDN")
 
 ind <- data %>% filter(country == "IND")
@@ -162,38 +181,169 @@ tha <- data %>% filter(country == "THA")
 
 vnm <- data %>% filter(country == "VNM")
 
-##############################################################################
-############### Map ##########################################################
-#
-#
-#
-############################################################################
-# geo data
-#idn.geo <- idn %>% select(fno:village)
+```
 
-#idn.geo$village
+## India data Dry season
 
-# library(XML)
-# theurl <- "https://en.wikipedia.org/wiki/List_of_regencies_and_cities_of_Indonesia#West_Java"
-# webpage <- getURL(theurl)
-# 
-# pagetree <- htmlTreeParse(webpage, error=function(...){}, useInternalNodes = TRUE)
-# 
-# # Extract table header and contents
-# tablehead <- xpathSApply(pagetree, "//*/table[@class='wikitable sortable']/tr/th", xmlValue)
-# results <- xpathSApply(pagetree, "//*/table[@class='wikitable sortable']/tr/td", xmlValue)
-
-# Here are the dictrict lists:Cikempak, Pamanukan, 
-###############################################################################
-
-
-## exploratory analysis for indonesia
+```{r fig.height=3, fig.width=3}
 # for the production situation and injuries data 
-idn.new <- idn %>% select(pc:rtx)
+ind.ds <- ind %>% filter(season == "DS") %>% select(pc:rtx)
 
-str(idn.new)
-describe(idn.new)
+result <- data.frame(describe(ind.ds))
 
-data <- data[ , apply(data[, -c(1,2)], 2, var, na.rm = TRUE) != 0] # exclude the column with variation = 0
+result$sym <- ifelse(result$skew <= -1 | result$skew >= 1,"No", "Yes")
 
-data <- data[complete.cases(data), ] # exclude row which cantain NA
+result
+
+varnames <- colnames(ind.ds)
+p <- list()
+for(i in 1:length(varnames)) {
+  gdata <- ind.ds[,varnames[i]]
+p[[i]] <-  histMiss(as.data.frame(gdata), xlab = paste(varnames[i]))
+}
+```
+
+## India data Wet season
+
+```{r fig.height=3, fig.width=3}
+# for the production situation and injuries data 
+ind.ws <- ind %>% filter(season == "WS") %>% select(pc:rtx)
+
+result <- data.frame(describe(ind.ws))
+result$sym <- ifelse(result$skew <= -1 | result$skew >= 1,"No", "Yes")
+result
+
+varnames <- colnames(ind.ws)
+p <- list()
+for(i in 1:length(varnames)) {
+  gdata <- ind.ws[,varnames[i]]
+p[[i]] <-  histMiss(as.data.frame(gdata), xlab = paste(varnames[i]))
+}
+```
+
+
+## Indonesia data Wet season
+
+```{r fig.height=3, fig.width=3}
+# for the production situation and injuries data 
+idn.ws <- idn %>% filter(season == "WS") %>% select(pc:rtx)
+
+result <- data.frame(describe(idn.ws))
+result$sym <- ifelse(result$skew <= -1 | result$skew >= 1,"No", "Yes")
+result
+
+varnames <- colnames(idn.ws)
+p <- list()
+for(i in 1:length(varnames)) {
+  gdata <- idn.ws[,varnames[i]]
+p[[i]] <-  histMiss(as.data.frame(gdata), xlab = paste(varnames[i]))
+}
+```
+
+## Indonesia data Wet season
+
+```{r fig.height=3, fig.width=3}
+# for the production situation and injuries data 
+idn.ds <- idn %>% filter(season == "DS") %>% select(pc:rtx)
+
+result <- data.frame(describe(idn.ds))
+result$sym <- ifelse(result$skew <= -1 | result$skew >= 1,"No", "Yes")
+result
+
+varnames <- colnames(idn.ds)
+p <- list()
+for(i in 1:length(varnames)) {
+  gdata <- idn.ds[,varnames[i]]
+p[[i]] <-  histMiss(as.data.frame(gdata), xlab = paste(varnames[i]))
+}
+```
+
+## Phillipines data Dry season
+
+```{r fig.height=3, fig.width=3}
+# for the production situation and injuries data 
+phi.ds <- phi %>% filter(season == "DS") %>% select(pc:rtx)
+
+result <- data.frame(describe(phi.ds))
+result$sym <- ifelse(result$skew <= -1 | result$skew >= 1,"No", "Yes")
+result
+
+varnames <- colnames(phi.ds)
+p <- list()
+for(i in 1:length(varnames)) {
+  gdata <- phi.ds[,varnames[i]]
+p[[i]] <-  histMiss(as.data.frame(gdata), xlab = paste(varnames[i]))
+}
+```
+
+## Phillipines data Wet season
+
+```{r fig.height=3, fig.width=3}
+# for the production situation and injuries data 
+phi.ws <- phi %>% filter(season == "WS") %>% select(pc:rtx)
+
+result <- data.frame(describe(phi.ws))
+result$sym <- ifelse(result$skew <= -1 | result$skew >= 1,"No", "Yes")
+result
+
+varnames <- colnames(phi.ws)
+p <- list()
+for(i in 1:length(varnames)) {
+  gdata <- phi.ws[,varnames[i]]
+p[[i]] <-  histMiss(as.data.frame(gdata), xlab = paste(varnames[i]))
+}
+```
+
+## Thailand data Wet season
+
+```{r fig.height=3, fig.width=3}
+# for the production situation and injuries data 
+tha.ws <- tha %>% filter(season == "WS") %>% select(pc:rtx)
+
+result <- data.frame(describe(tha.ws))
+result$sym <- ifelse(result$skew <= -1 | result$skew >= 1,"No", "Yes")
+result
+
+varnames <- colnames(tha.ws)
+p <- list()
+for(i in 1:length(varnames)) {
+  gdata <- tha.ws[,varnames[i]]
+p[[i]] <-  histMiss(as.data.frame(gdata), xlab = paste(varnames[i]))
+}
+```
+
+## Vietnam data Dry season
+
+```{r fig.height=3, fig.width=3}
+# for the production situation and injuries data 
+vnm.ds <- vnm %>% filter(season == "DS") %>% select(pc:rtx)
+
+result <- data.frame(describe(vnm.ds))
+result$sym <- ifelse(result$skew <= -1 | result$skew >= 1,"No", "Yes")
+result
+
+varnames <- colnames(vnm.ds)
+p <- list()
+for(i in 1:length(varnames)) {
+  gdata <- vnm.ds[,varnames[i]]
+p[[i]] <-  histMiss(as.data.frame(gdata), xlab = paste(varnames[i]))
+}
+```
+
+## Vietnam data Wet season
+
+```{r fig.height=3, fig.width=3}
+# for the production situation and injuries data 
+vnm.ws <- vnm %>% filter(season == "WS") %>% select(pc:rtx)
+
+result <- data.frame(describe(vnm.ws))
+result$sym <- ifelse(result$skew <= -1 | result$skew >= 1,"No", "Yes")
+result
+
+varnames <- colnames(vnm.ws)
+p <- list()
+for(i in 1:length(varnames)) {
+  gdata <- vnm.ws[,varnames[i]]
+p[[i]] <-  histMiss(as.data.frame(gdata), xlab = paste(varnames[i]))
+}
+```

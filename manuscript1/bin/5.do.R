@@ -39,3 +39,4 @@ mapgoogle <- get_map(location = c(lon = mean(mark.data$Long), lat = mean(mark.da
 ggmap(mapgoogle) + geom_point(data = mark.data, aes(x = Long, y = Lat, 
                                                      fill = "red", alpha = 0.8), size = 3, shape = 21) + guides(fill = FALSE,  alpha = FALSE, size = FALSE)
 
+fjsdhfjkdsh
