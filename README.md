@@ -1,5 +1,6 @@
 Network project
 ====
+The data that used for this project came from this [Crop_Survey_Database](https://github.com/sithjaisong/Crop_Survey_Database). You can folk from the link.
 
 The project is created for keep Rscript used for analyze the survey data under SEKP project.
 
@@ -32,6 +33,6 @@ The project is created for keep Rscript used for analyze the survey data under S
              /--table/
 /--README            
 ```
-The complete project should have 2 :folder: 
+The complete project should have 2 :folder:
 1. chapter 3 titled _Different topological features of networks for animal pests and disease co-occurrence in irrigated lowland rice growing areas in South and South East Asia_  this folder can be run with single script (`do.R`).
 2. chapter 4 (no exist)
