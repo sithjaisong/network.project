@@ -1,11 +1,3 @@
-#
-#
-#Description; 
-#All P-values of the genera and associations were adjusted by the Benjamini-Hochberg procedure. 
-#Co-occurence networks were calculated by spearman's rank correlation  
-#and significant associations (P < 0.05)were included in the network construction.
-
-
 library(ltm)
 
 cooc_table <- function(temp){
@@ -16,13 +8,13 @@ cooc_table <- function(temp){
     
     # every species will be compared to every other species, so there has
     # to be another loop that iterates down the rest of the columns
-   
-     for (c in (b + 1):length(names(temp))){
+    
+    for (c in (b + 1):length(names(temp))){
       
       # summing the abundances of species of the columns that will be
       # compared
       
-       var1.sum <- sum(temp[, b], na.rm = TRUE)
+      var1.sum <- sum(temp[, b], na.rm = TRUE)
       
       var2.sum <- sum(temp[, c], na.rm = TRUE)
       
@@ -30,8 +22,7 @@ cooc_table <- function(temp){
       
       if (var1.sum > 1 & var2.sum > 1){
         
-        test <- cor.test(temp[, b], temp[, c], method = "spearman", 
-                         na.action = na.rm, exact = FALSE)
+        test <- cor.test(temp[, b], temp[, c], method = "spearman",  na.action = na.rm, exact = FALSE)
         
         # There are warnings when setting exact = TRUE because of ties from the
         # output of Spearman's correlation
@@ -50,8 +41,7 @@ cooc_table <- function(temp){
         p.value <- 1
       }
       
-      new.row <- c(names(temp)[b], names(temp)[c], 
-                   rho, p.value, var1.sum, var2.sum)
+      new.row <- c(names(temp)[b], names(temp)[c], rho, p.value, var1.sum, var2.sum)
       
       results <- rbind(results, new.row)
       
@@ -73,7 +63,7 @@ cooc_table <- function(temp){
   new.results$rho <- as.numeric(as.character(new.results$rho))
   
   new.results$p.value <- as.numeric(as.character(new.results$p.value))
- 
+  
   new.results$p.adjust <- as.numeric(new.results$p.adjust)
   
   # reorder the column names following this

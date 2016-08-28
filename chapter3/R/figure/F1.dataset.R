@@ -9,6 +9,7 @@
 #############################################################
 
 boxplot_survey_data <- function(data){
+  
   long.injury.profiles <- melt(data)
   
   #varname <- unique(as.character(as.factor(long.injury.profiles$variable)))
@@ -25,7 +26,7 @@ boxplot_survey_data <- function(data){
   
   for (i in 1:length(varname1)) {
     
-    tiller.boxplot[[i]] <- ggplot(long.injury.profiles %>% filter(variable == varname1[i]), aes(x = country, y = value, fill = season, color = season )) +
+    tiller.boxplot[[i]] <- ggplot(long.injury.profiles %>% dplyr::filter(variable == varname1[i]), aes(x = country, y = value, fill = season, color = season )) +
       geom_boxplot() + 
       stat_summary(fun.y = "mean", geom = "point", size = 1, shape = 4, position = position_dodge(width = 0.75), fill = "black") +
       theme(legend.position = "none",
@@ -48,7 +49,7 @@ boxplot_survey_data <- function(data){
   
   for (i in 1:length(varname2)) {
     
-    folier.boxplot[[i]] <- ggplot(long.injury.profiles %>% filter(variable == varname2[i]), aes(x = country, y = value, fill = season, color = season )) +
+    folier.boxplot[[i]] <- ggplot(long.injury.profiles %>% dplyr::filter(variable == varname2[i]), aes(x = country, y = value, fill = season, color = season )) +
       geom_boxplot() + 
       stat_summary(fun.y = "mean", geom = "point", size = 1, shape = 4, position = position_dodge(width = 0.75), color = "black") +
       theme(legend.position = "none") + theme(panel.background = element_blank(),
@@ -66,9 +67,9 @@ boxplot_survey_data <- function(data){
   
   insect.boxplot <- list()
   
-  for (i in 1:length(varname3)) {
+  for (i in 1:(length(varname3) - 1)) {
     
-    insect.boxplot[[i]] <- ggplot(long.injury.profiles %>% filter(variable == varname3[i]), aes(x = country, y = value, fill = season, color = season )) +
+    insect.boxplot[[i]] <- ggplot(long.injury.profiles %>% dplyr::filter(variable == varname3[i]), aes(x = country, y = value, fill = season, color = season )) +
       geom_boxplot() + 
       stat_summary(fun.y = "mean", geom = "point", size = 1, shape = 4, position = position_dodge(width = 0.75), color = "black") +
       theme(legend.position = "none") + theme(panel.background = element_blank(),
@@ -81,11 +82,24 @@ boxplot_survey_data <- function(data){
     
   }
   
+  # graph 4 of the injuries group 3
+  lastgraph <- ggplot(long.injury.profiles %>% filter(variable == varname3[4]), aes(x = country, y = value, fill = season, color = season )) +
+    geom_boxplot() + 
+    stat_summary(fun.y = "mean", geom = "point", size = 1, shape = 4, position = position_dodge(width = 0.75), color = "black") +
+    theme(panel.background = element_blank(),
+                                            axis.line = element_line(size = 0.5),
+                                            axis.title.x = element_blank()) +
+    scale_fill_manual(values = c("WS" = "steelblue1", "DS" = "indianred1")) + 
+    scale_color_manual(values = c("WS" = "steelblue4", "DS" = "indianred4")) +
+    ylab("N dsu") + 
+    ggtitle(paste(varname3[4]))
+  
   # combine all 
   
-  all.dataset.boxplot <- marrangeGrob(c(folier.boxplot, tiller.boxplot, insect.boxplot), nrow = 3, ncol = 3)
+  all.dataset.boxplot <- marrangeGrob(c(folier.boxplot, tiller.boxplot, insect.boxplot, lastgraph), nrow = 3, ncol = 2)
   
+
   return(all.dataset.boxplot)
 }
 
-#ggsave(file = "./chapter3/results/plots/dataset_boxplot.pdf", all.dataset.boxplot, dpi = 720)
+

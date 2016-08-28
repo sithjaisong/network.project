@@ -12,6 +12,7 @@
 library(plyr)
 library(dplyr)
 library(tidyr)
+library(reshape)
 library(reshape2)
 
 # ===== Load function
@@ -24,7 +25,7 @@ load(file = "~/Google Drive/surveySKEP1/FULLdatabase1.RData")
 
 # names(FORM2)
 # corract the type of varibale
-
+FORM2[is.na(FORM2)] <- 0
 
 data <- FORM2 %>% transform(index = as.factor(as.character(index)), Country = as.character(Country), 
                                 Year = as.character(Year), Season = as.character(Season), Fieldno = as.character(Fieldno), 
@@ -43,23 +44,17 @@ data <- FORM2 %>% transform(index = as.factor(as.character(index)), Country = as
                                 WPH.sweep = as.numeric(WPH.sweep), RC.sweep = as.numeric(RC.sweep)
                                 )
 
-#==== Select: Pest injuries and disease part
-
-# select out the unreliable varibales
-
-injury.data <- data %>% select(index, Country, Year, Season, Fieldno, visit, DVS, Q, Nt ,Np, Nl, 
-                               SNL, DH, WH, GM, RT, WM, LF, BPH, WPH , AW, RB , BLB  ,LB, BS, BLS ,NBS, RS, SHB, SHR, SR, FS, NB, DP)
 
 # the data NA is 0 because the the person sho input the data keep blank when data actualy are 0. And they means really 0, not NA, which is mean did not observe.
 
-injury.data[is.na(injury.data)] <- 0 
+data[is.na(data)] <- 0 
 
-analyzed.injury <- injury_analysis(injury.data)
+analyzed.injury <- injury_analysis(data) # if it error, you need to reload dplyr package
 
 
 #==== Select: Weed infastration
 
-weed <- data %>% select(index, Country, Year, Season, Fieldno, visit, DVS, Area, weed.above, weed.below)
+weed <- data %>% dplyr::select(index, Country, Year, Season, Fieldno, visit, DVS, Area, weed.above, weed.below)
 
 weed[is.na(weed)] <- 0
 
@@ -67,7 +62,7 @@ analyzed.weed <- weed_analysis(weed)
 
 #==== Select sweep insect
 
-GLH <- data %>% select(index, Country, Year, Season, Fieldno, visit, DVS, Sweep.no, GLH.sweep)
+GLH <- data %>% dplyr::select(index, Country, Year, Season, Fieldno, visit, DVS, Sweep.no, GLH.sweep)
 
 GLH[is.na(GLH)] <- 0
 
@@ -82,4 +77,30 @@ injury.profiles$Fieldno <- NULL
 names(injury.profiles) <- c("index", "country", "year", "season", "SNL", "DH", "RT", "GM", "RB", "WH", "DP", "FS", "NB", "SHB", "SHR", "SR", 
                             "BPH", "WPH", "AW", "LF", "WM", "BLB", "BLS", "BS", "LB", "NBS", "RS", "GLH")
 
-save(injury.profiles, analyzed.GLH, analyzed.weed, analyzed.injury, file = "~/Google Drive/surveySKEP1/injury_data.RData")
+injury.profiles <- as.data.frame(injury.profiles)
+#save(injury.profiles, analyzed.GLH, analyzed.weed, analyzed.injury, file = "~/Google Drive/surveySKEP1/injury_data.RData")
+
+
+colnames(FORM1)[names(FORM1) %in% c("Country" , "Season")] <- c("country", "season")
+
+
+# yield with injures
+yield.data <- FORM1 %>% dplyr::select(index, country, season, yld.area1, yld.area2, yld.area3) %>% 
+  gather(area, yield, yld.area1:yld.area3) %>% 
+  mutate(area = gsub("yld.area", "", area)) %>% 
+  group_by(index, country, season) %>%
+  summarise(mean.yield = mean(yield, rm.na = FALSE))
+
+IPwithyield <- left_join(injury.profiles, yield.data)
+
+IPwithyield <- IPwithyield[!(is.na(IPwithyield$mean.yield) == TRUE),]
+
+
+IPwithyield$yield.level <- ifelse(IPwithyield$mean.yield < 400, "low",
+                                  ifelse(IPwithyield$mean.yield >= 400 & IPwithyield$mean.yield < 600, "medium", "high"
+                                  ))
+
+#save(IPwithyield, file =  "~/Google Drive/surveySKEP1/IPwithyield.RData")
+#save(injury.profiles, IPwithyield, country.season.dataset, country.season.cor.mat, country.season.net, file = "~/Google Drive/surveySKEP1/chapter3netdata.RData")
+
+

@@ -1,9 +1,9 @@
 
 #to prove the nature of the network
 
-random_graph <- function(netgraph, trails = 10000){
+random_graph <- function(netgraph, trials = 10000){
   
-  ntrials <- trails
+  ntrials <- trials
   
   nv <- vcount(netgraph)
   ne <- ecount(netgraph)
@@ -13,7 +13,7 @@ random_graph <- function(netgraph, trails = 10000){
   
   for(i in 1:ntrials){
     g.rg <- erdos.renyi.game(nv, ne, type = "gnm", directed = FALSE)
-    cl.rg[i] <- transitivity(g.rg, type = "global")
+    cl.rg[i] <- igraph::transitivity(g.rg, type = "global")
     apl.rg[i] <- average.path.length(g.rg)
   }
   

@@ -8,14 +8,14 @@ node.value <- data.frame(
   
     id = V(graph)$name, # node name
     
-    deg = degree(graph), # degree distribution
+    deg = igraph::degree(graph), # degree distribution
     
-    bet = betweenness(abs.graph, normalized = TRUE, directed =FALSE), #betweenness centality
+    bet = betweenness(abs.graph, normalized = FALSE, directed =FALSE), #betweenness centality
     
     clo = closeness(abs.graph), #closeness centality
     
-    tra = transitivity(graph, type = c("weighted")) # cluster coefficients
-  )
+    tra = igraph::transitivity(graph, type = c("weight")) # cluster coefficients
+)
   
   names(node.value) <- c("var", "degree", "betweenness", "closeness","clust.coef")
   
@@ -40,7 +40,7 @@ net_stat <- function(graph){
     
     avr.path = average.path.length(graph),
     
-    diam = diameter(abs.graph, unconnected = TRUE),
+    diam = igraph::diameter(abs.graph, unconnected = TRUE),
     
     cent.bet = centr_betw(abs.graph, directed = FALSE)$centralization, #3.betweenness centralization
     
@@ -50,7 +50,7 @@ net_stat <- function(graph){
     
     density = edge_density(graph, loops = FALSE), #6. density
     
-    tra = transitivity(graph, type = "global") #7. transitivity
+    tra = igraph::transitivity(graph, type = "global") #7. transitivity
     
   )
   

@@ -1,0 +1,398 @@
+ ---
+title: "dynamic crop health network"
+author: "Sith J"
+date: "October 5, 2015"
+output: html_document
+---
+
+Here is the report of the network analysis of the crop health data.
+
+```{r loading the libraries, echo = TRUE, warning = FALSE, message = FALSE}
+library(dplyr)
+library(plyr)
+library(reshape)
+library(reshape2)
+library(gridExtra)
+library(lubridate)
+library(doBy)
+library(cluster)
+library(ggplot2)
+library(scales)
+library(bioDist)
+library(vegan)
+library(mvtnorm)
+library(igraph)
+library(WGCNA)
+library(cowplot)
+library(DiffCorr)
+```
+
+Load the survey data
+
+```{r echo = TRUE, warning = FALSE, message = FALSE}
+#library(RCurl)
+#file <- getURL("https://docs.google.com/spreadsheets/d/1zB7gNdI7Nk7SuHuPWcjzaKnjuwkvL6sOVMo0zMfuV-c/pub?gid=558862364&single=true&output=csv")
+#data <- read.csv(text = file)
+# save(data, file = "manuscript1/data/skep1data.RData")
+load(file = "~/Documents/Github/network.project/manuscript1/data/skep1data.RData")
+#Filepath <- "~/Google Drive/1.SKEP1/SKEP1survey.xls"
+#data <- readWorksheetFromFile(Filepath, sheet = 1)
+```
+
+```{r define the NA}
+data[data == "-"] <- NA # replace '-' with NA
+data[data == ""] <- NA # replace 'missing data' with NA
+
+#==== to lower variable names ====
+names(data) <- tolower(names(data)) # for more consistancy
+```
+
+select out the column which is not inlcuded in the analysis
+
+```{r select out, echo = TRUE, warning = FALSE, message = FALSE}
+data$phase <- NULL # there is only one type yype of phase in the survey
+data$identifier <- NULL # this variable is not included in the analysis
+data$village <- NULL
+data$year <- NULL
+data$season <- NULL
+data$lat <- NULL
+data$long <- NULL
+data$fa <- NULL # field area is not include in the analysis
+data$fn <- NULL # farmer name can not be included in this survey analysis
+data$fp <- NULL # I do not know what is fp
+data$lfm <- NULL # there is only one type of land form in this survey
+data$ced <- NULL # Date data can not be included in the network analysis
+data$cedjul <- NULL
+data$hd <- NULL # Date data can not be included in the network analysis
+data$hdjul <- NULL
+data$cvr <- NULL
+data$varcoded <- NULL # I will recode them 
+data$fymcoded <- NULL
+data$mu <- NULL # no record
+data$nplsqm <- NULL
+data$rbpx <- NULL # no record
+```
+
+
+```{r}
+#==== corract the variable type =====
+data <- transform(data, 
+                  country = as.factor(country),
+                  pc = as.factor(pc),
+                  cem = as.factor(cem),     
+                  ast = as.factor(ast),       
+                  ccd = as.numeric(ccd),
+                  vartype = as.factor(vartype),
+                  fym = as.character(fym),
+                  n = as.numeric(n),
+                  p = as.numeric(p) ,
+                  k = as.numeric(k),
+                  mf = as.numeric(mf),        
+                  wcp = as.factor(wcp),      
+                  iu = as.numeric(iu),     
+                  hu = as.numeric(hu),      
+                  fu = as.numeric(fu),      
+                  cs  = as.factor(cs),      
+                  ldg  =  as.numeric(ldg),  
+                  yield = as.numeric(yield) ,
+                  dscum = as.factor(dscum),   
+                  wecum = as.factor(wecum),   
+                  ntmax = as.numeric(ntmax), 
+                  npmax = as.numeric(npmax),    
+                  nltmax = as.numeric(nltmax),  
+                  nlhmax = as.numeric(nltmax),  
+                  waa = as.numeric(waa),      
+                  wba = as.numeric(wba) ,   
+                  dhx =  as.numeric(dhx),  
+                  whx =  as.numeric(whx),     
+                  ssx  = as.numeric(ssx),  
+                  wma = as.numeric(wma), 
+                  lfa = as.numeric(lfa),
+                  lma = as.numeric(lma),   
+                  rha  = as.numeric(rha) ,
+                  thrx = as.numeric(thrx),    
+                  pmx = as.numeric(pmx),    
+                  defa  = as.numeric(defa) ,
+                  bphx = as.numeric(bphx),   
+                  wbpx = as.numeric(wbpx),    
+                  awx  = as.numeric(awx), 
+                  rbx =as.numeric(rbx),   
+                  rbbx = as.numeric(rbbx),  
+                  glhx  = as.numeric(glhx), 
+                  stbx=as.numeric(stbx),    
+                  hbx= as.numeric(hbx),
+                  bbx = as.numeric(bbx),    
+                  blba = as.numeric(blba),    
+                  lba = as.numeric(lba),    
+                  bsa = as.numeric(bsa),    
+                  blsa = as.numeric(blsa),  
+                  nbsa = as.numeric(nbsa),  
+                  rsa  = as.numeric(rsa),   
+                  lsa = as.numeric(lsa),    
+                  shbx = as.numeric(shbx) ,  
+                  shrx = as.numeric(shrx),    
+                  srx= as.numeric(srx),    
+                  fsmx = as.numeric(fsmx),   
+                  nbx =  as.numeric(nbx),   
+                  dpx = as.numeric(dpx),    
+                  rtdx  = as.numeric(rtdx),  
+                  rsdx  = as.numeric(rsdx),
+                  gsdx  =as.numeric(gsdx),   
+                  rtx = as.numeric(rtx)
+) 
+```
+
+```{r coding the data, echo = TRUE, warning = FALSE, message = FALSE}
+data$pc <- ifelse(data$pc == "rice", 1, 0)
+
+#Crop establisment method
+levels(data$cem)[levels(data$cem) == "trp"] <- 1
+levels(data$cem)[levels(data$cem) == "TPR"] <- 1
+levels(data$cem)[levels(data$cem) == "DSR"] <- 2
+levels(data$cem)[levels(data$cem) == "dsr"] <- 2
+
+# fym there are two type 0 and 1, raw data are recorded as no, yes, and value, if the value is 0 which mean 0 and if the value more than 0 which means 1 
+
+data$fym <- ifelse(data$fym == "no", 0, 
+                   ifelse(data$fym == "0", 0, 1
+                   )
+)
+
+# vartype there are three type treditional varieties, modern varities and hybrid
+data$vartype <- ifelse(data$vartype == "tv", 1,
+                       ifelse(data$vartype == "mv", 2,
+                              ifelse(data$vartype == "hyb", 3, NA
+                              )
+                       )
+)
+
+
+# wcp weed control management
+levels(data$wcp)[levels(data$wcp) == "hand"] <- 1
+levels(data$wcp)[levels(data$wcp) == "herb"] <- 2
+levels(data$wcp)[levels(data$wcp) == "herb-hand"] <- 3
+
+
+# Crop Status
+levels(data$cs)[levels(data$cs) == "very poor"] <- 1
+levels(data$cs)[levels(data$cs) == "poor"] <- 2
+levels(data$cs)[levels(data$cs) == "average"] <- 3
+levels(data$cs)[levels(data$cs) == "good"] <- 4
+levels(data$cs)[levels(data$cs) == "very good"] <- 5
+
+```
+
+```{r}
+#clean the data
+num.data <- apply(data[, -c(1,2)], 2, as.numeric)
+num.data <- as.data.frame(as.matrix(num.data))
+data <- cbind(data[1:2], num.data)
+data <- data[,apply(data[, -c(1,2)], 2, var, na.rm = TRUE) != 0] # exclude the column with variation = 0
+data <- data[complete.cases(data),] # exclude row which cantain NA
+```
+
+See how the yield data are distributed 
+
+```{r}
+#head(data)
+# select only the variables related to the injury profiles
+start.IP <- "dhx"
+end.IP <- "rtx"
+start.col.IP <- match(start.IP, names(data))
+end.col.IP <- match(end.IP, names(data))
+
+IP.data <- data[start.col.IP:end.col.IP]
+
+IP.data <- IP.data[ ,apply(IP.data, 2, var, na.rm = TRUE) != 0] # exclude the column with variation = 0
+yield <- data$yield
+
+IP.Y.data <- cbind(yield, IP.data)
+
+IP.Y.data[is.na(IP.Y.data)] <- 0
+
+```
+
+```{r}
+#hist(IP.Y.data$yield)
+# from this histogram 
+# I would group the data into six groups of yields.
+ylevel <- ifelse(IP.Y.data$yield <= 3, "Y3", 
+                           ifelse( 3 < IP.Y.data$yield & IP.Y.data$yield <= 4, "Y4",
+                                  ifelse(4 < IP.Y.data$yield & IP.Y.data$yield <= 5, "Y5",
+                                         ifelse(5 < IP.Y.data$yield & IP.Y.data$yield <= 6, "Y6",
+                                                ifelse(6 < IP.Y.data$yield & IP.Y.data$yield <= 7, "Y7", "Y8"
+                                                       )))))
+# y3 <- subset(IP.Y.data, yield <= 3)
+# y4 <- subset(IP.Y.data, 3 < yield | yield >= 4 )
+# y5 <- subset(IP.Y.data, 4 < yield | yield >= 5 )
+# y6 <- subset(IP.Y.data, 5 < yield | yield >= 6 )
+# y7 <- subset(IP.Y.data, 6 < yield | yield >= 7 )
+# y8 <- subset(IP.Y.data, 7 < yield | yield >= 8 )
+IP.Y.data <- cbind(ylevel, IP.Y.data)
+IP.Y.data$ylevel <- as.factor(IP.Y.data$ylevel)
+ylevels <- levels(IP.Y.data$ylevel)
+IP.Y.data$activity.level <- rowSums(IP.Y.data[-1])
+
+ggplot(IP.Y.data, aes(x= as.factor(ylevel), y= activity.level)) + 
+  geom_boxplot() +
+  stat_summary(fun.y = median, geom = "line", aes(group = 1)) +
+  stat_summary(func.y = median, geom = "point")
+
+ggplot(IP.Y.data, aes(x= yield, y= activity.level)) + geom_point()
+
+IP.Y.data.new <- IP.Y.data[, !names(IP.Y.data) %in% c("yield", "activity.level")]
+```
+
+```{r, echo = TRUE, warning = FALSE, message = FALSE}
+results <- matrix(nrow = 0, ncol = 7)
+options(warnings = -1)
+for(a in 1:length(ylevels)){
+  #pull the first element from the vector of treatments
+  y.temp <- ylevels[a]
+  #subset the dataset for those treatments
+  temp <- subset(IP.Y.data.new, ylevel == y.temp)
+  
+  #in this case the community data started at column 6, so the loop for co-occurrence has to start at that point
+  for(b in 2:(dim(temp)[2]-1)){
+    #every species will be compared to every other species, so there has to be another loop that iterates down the rest of the columns
+    for(c in (b+1):(dim(temp)[2])){
+      
+      #summing the abundances of species of the columns that will be compared
+      species1.ab <- sum(temp[, b])
+      species2.ab <- sum(temp[, c])
+      #if the column is all 0's no co-occurrence will be performed
+      if(species1.ab >1 & species2.ab >1){
+        test <- cor.test(temp[,b], temp[,c], method = "spearman", na.action = na.rm, exact = FALSE)
+        # There are warnings when setting exact = TRUE because of ties from the output of Spearman's correlation
+        # stackoverflow.com/questions/10711395/spear-man-correlation and ties
+        # It would be still valid if the data is not normally distributed.
+        rho <- test$estimate
+        p.value <- test$p.value
+      }
+      
+      if(species1.ab <=1 | species2.ab <= 1){
+        rho<-0
+        p.value<-1
+      }	
+      
+      new.row <- c(ylevels[a], names(temp)[b], names(temp)[c], rho, p.value, species1.ab, species2.ab)
+      results <- rbind(results, new.row)			
+      
+    }
+    
+  }
+  print(a/length(ylevels))
+  
+}
+
+results <- data.frame(data.matrix(results))
+names(results) <- c("ylevel","taxa1","taxa2","rho","p.value","ab1","ab2")
+
+#making sure certain variables are factors
+results$ylevel <- as.factor(results$ylevel)
+results$taxa1 <- as.character(as.factor(results$taxa1))
+results$taxa2 <- as.character(as.factor(results$taxa2))
+results$rho <- as.numeric(as.character(results$rho))
+results$p.value <- as.numeric(as.character(results$p.value))
+results$ab1 <- as.numeric(as.character(results$ab1))
+results$ab2 <- as.numeric(as.character(results$ab2))
+
+str(results)
+head(results)
+```
+
+```{r}
+ # sub_y.results <- subset(results, as.numeric(as.character(abs(rho))) > 0.25)
+  sub_y.results <- results %>% filter(p.value < 0.05)
+
+  sub_ylevels.results <- list()
+  
+  for(i in 1: length(ylevels)){
+  
+  sub_ylevels.results[[i]] <- subset(sub_y.results, ylevel == ylevels[i])
+  }
+```
+
+
+```{r}
+# head(results_sub.by.group[[1]][,2:3]) # get the list
+par(mfrow = c(2, 3))
+  
+ ynet  <- list()
+
+for(i in 1:length(ylevels)){
+  
+  ynet[[i]] <- graph.edgelist(as.matrix(sub_ylevels.results[[i]][, 2:3]), directed = FALSE)
+#== adjust layout
+
+  l <- layout.circle(ynet[[i]])
+#== adjust vertices
+  V(ynet[[i]])$color <- "tomato"
+  V(ynet[[i]])$frame.color <- "gray40"
+  V(ynet[[i]])$shape <- "circle"
+  V(ynet[[i]])$size <- 25
+  V(ynet[[i]])$label.color <- "white"
+  V(ynet[[i]])$label.font <- 2
+  V(ynet[[i]])$label.family <- "Helvetica"
+  V(ynet[[i]])$label.cex <- 0.7
+
+#== adjust the edge
+  E(ynet[[i]])$weight <- as.matrix(sub_ylevels.results[[i]][, 4])
+  
+  E(ynet[[i]])$width <- 1 + E(ynet[[i]])$weight*5
+  
+  col <- c("firebrick3", "forestgreen")
+  
+  colc <- cut(sub_ylevels.results[[i]]$rho, breaks = c(-1, 0, 1), include.lowest = TRUE)
+  
+  E(ynet[[i]])$color <- col[colc]
+
+#== plot network model
+  plot(ynet[[i]], layout = l * 1.0, main = paste( "network model of", ylevels[i]))
+}
+```
+
+```{r}
+network.value <- list()
+
+
+for(i in 1:length(ynet)){
+  
+  E(ynet[[i]])$weight <- abs(as.matrix(sub_ylevels.results[[i]][, 4]))
+  l <- layout.fruchterman.reingold(ynet[[1]])
+  
+  network.value[[i]] <- data.frame(
+  ylevel = ylevels[i],
+  node = V(ynet[[i]])$name,
+  strength = graph.strength(ynet[[i]]),
+  density = edge_density(ynet[[i]]),
+  betweenness = betweenness(ynet[[i]]),
+  closeness = closeness(ynet[[i]]),
+  eigenvector = evcent(ynet[[i]])$vector,
+  clusterCoef = transitivity(ynet[[i]], type=c("local"))
+  )
+}
+  network.value <- as.data.frame(do.call("rbind", network.value))
+  row.names(network.value ) <- NULL
+```
+
+```{r}
+p1 <- ggplot(network.value, aes(x = ylevel, y = closeness)) + geom_boxplot()
+  p2 <- ggplot(network.value, aes(x = ylevel, y = betweenness)) + geom_boxplot()
+  p3 <- ggplot(network.value, aes(x = ylevel, y = strength)) + geom_boxplot()
+  p4 <- ggplot(network.value, aes(x = ylevel, y = eigenvector)) + geom_boxplot()
+  p5 <- ggplot(network.value, aes(x = ylevel, y = clusterCoef)) + geom_boxplot()
+  
+p6 <- ggplot(IP.Y.data, aes(x= as.factor(ylevel), y= activity.level)) + 
+ # geom_boxplot() +
+  stat_summary(fun.y = median, geom = "line", aes(group = 1)) 
+  #stat_summary(func.y = median, geom = "point")
+
+grid.arrange(p1, p2, p3, p4, p5, p6)
+  
+```
+
+
+
+
+

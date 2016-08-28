@@ -12,8 +12,8 @@ source("~/Documents/Github/network.project/chapter3/R/functions/function_audpc.R
 
 weed_analysis <- function(form2.weed) {
     # fill the na with 0
-    
-    ##### ----- Analysis sheet 3 weed infastration-----##### Calcuation for Weed sheet3, especially WA and WB tranform from
+    ##### ----- Analysis sheet 3 weed infastration-----
+    ##### Calcuation for Weed sheet3, especially WA and WB tranform from
     ##### scale to percent
     #' weed class 0 is 0 percent
     #' weed class 1 is up to 10 percent, 
@@ -36,10 +36,10 @@ weed_analysis <- function(form2.weed) {
     
     ### 
     
-    output <- form2.weed %>% group_by(index, Country, Year, Season, Fieldno, visit, DVS) %>% # find mean
-    mutate(m.WA = mean(weed.above), m.WB = mean(weed.below)) %>% 
-    group_by(index, Country, Year, Season, Fieldno) %>% 
-      summarise(x.WA = audpc(m.WA, 
+    output <- form2.weed %>% dplyr::group_by(index, Country, Year, Season, Fieldno, visit, DVS) %>% # find mean
+    dplyr::mutate(m.WA = mean(weed.above), m.WB = mean(weed.below)) %>% 
+    dplyr::group_by(index, Country, Year, Season, Fieldno) %>% 
+      dplyr::summarise(x.WA = audpc(m.WA, 
         DVS), x.WB = audpc(m.WB, DVS))
     
     return(output)

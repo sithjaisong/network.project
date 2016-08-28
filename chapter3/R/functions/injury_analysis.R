@@ -4,7 +4,7 @@ source("~/Documents/Github/network.project/chapter3/R/functions/function_audpc.R
 # write the function
 injury_analysis <- function(injury){
       result <- injury %>%
-  mutate(Nlh = Nl * Nt, 
+  dplyr::mutate(Nlh = Nl * Nt, 
            # Number of leave = number of tiller * number of leave per tiller
            # tiller injuries
            SNL.percent = (SNL/Nt*100), # Percent of SNL damage on hill is number
@@ -29,8 +29,8 @@ injury_analysis <- function(injury){
            NBS.percent = NBS/Nlh*100, # Percent of Narrow brown spot in one hill
            RS.percent = RS/Nlh*100 # Percent of Red stripe in one hill
     )  %>%
-    group_by(index, Country, Year, Season, Fieldno, visit, DVS) %>%
-     summarise(#m.RT = mean(RT.percent), # Percent of Rat damage in one hill
+    dplyr::group_by(index, Country, Year, Season, Fieldno, visit, DVS) %>%
+     dplyr::summarise(#m.RT = mean(RT.percent), # Percent of Rat damage in one hill
       #    m.SNL = mean(SNL.percent), # Percent of Snail damage in one hill
       m.SNL = mean(SNL.percent),
       m.DH = mean(DH.percent),
@@ -56,8 +56,8 @@ injury_analysis <- function(injury){
       m.NBS = mean(NBS.percent),
       m.RS = mean(RS.percent)
     ) %>%
-    group_by(index, Country, Year, Season, Fieldno) %>% 
-        summarise(SNL.max = max(m.SNL),
+    dplyr::group_by(index, Country, Year, Season, Fieldno) %>% 
+        dplyr::summarise(SNL.max = max(m.SNL),
       DH.max = max(m.DH),
       RT.max = max(m.RT),
       GM.max = max(m.GM),
@@ -68,8 +68,6 @@ injury_analysis <- function(injury){
       SHB.max = max(m.SHB),
       SHR.max = max(m.SHR),
       SR.max = max(m.SR),
-      
-      #===insect count
       BPH.audpc = audpc(m.BPH, DVS),
       WPH.audpc = audpc(m.WPH, DVS),
       AW.audpc = audpc(m.AW, DVS),
